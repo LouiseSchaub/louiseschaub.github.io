@@ -12,7 +12,7 @@ Before joining Wuppertal, I completed my MSc in Mathematics at the University of
 
 ## News
 
-- **April 2026:** I was selected as one of 200 young researchers worldwide to attend the 13th Heidelberg Laureate Forum (Heidelberg, Germany) in September 2026.
+**April 2026:** I was selected as one of 200 young researchers worldwide to attend the 13th Heidelberg Laureate Forum (Heidelberg, Germany) in September 2026.
 
 ## Contact
 
