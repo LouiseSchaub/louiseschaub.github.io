@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>{% if page.title %}{{ page.title }} | {% endif %}{{ site.title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="{{ site.description }}">
+    <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+  </head>
+  <body>
+    <div class="site">
+      <aside class="sidebar">
+        <img class="avatar" src="{{ site.profile.image | relative_url }}" alt="{{ site.profile.name }}">
+        <h1>{{ site.profile.name }}</h1>
+        <p class="role">{{ site.profile.role }}</p>
+        <p class="meta">{{ site.profile.affiliation }}</p>
+        <p class="meta">{{ site.profile.location }}</p>
+
+        <p class="bio">{{ site.profile.bio }}</p>
+
+        <ul class="contact">
+          <li><a href="mailto:{{ site.profile.email }}">{{ site.profile.email }}</a></li>
+          <li><a href="{{ site.profile.orcid }}">ORCID</a></li>
+          <li><a href="{{ site.profile.github }}">GitHub</a></li>
+          <li><a href="{{ site.profile.linkedin }}">LinkedIn</a></li>
+        </ul>
+      </aside>
+
+      <main class="content">
+        <nav class="nav">
+          <a href="{{ '/' | relative_url }}">About</a>
+          <a href="{{ '/publications/' | relative_url }}">Publications</a>
+          <a href="{{ '/talks/' | relative_url }}">Talks</a>
+          <a href="{{ '/teaching/' | relative_url }}">Teaching</a>
+          <a href="{{ '/cv/' | relative_url }}">CV</a>
+        </nav>
+
+        <article class="page">
+          {% if page.title and page.title != "Home" %}
+            <h1>{{ page.title }}</h1>
+          {% endif %}
+          {{ content }}
+        </article>
+      </main>
+    </div>
+  </body>
+</html>
