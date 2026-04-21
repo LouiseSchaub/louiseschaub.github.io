@@ -10,13 +10,6 @@ I am a PhD Candidate and Research Associate in Mathematics at the University of 
 
 Before joining Wuppertal, I completed my MSc in Mathematics at the University of Bayreuth. My academic background combines mathematics and computer science, with interests in machine learning, uncertainty quantification, and scientific computing.
 
-## Research interests
-
-- Scalable Gaussian processes and kernel-based methods
-- Randomized low-rank approximation
-- Objective-aware approximation methods
-- Uncertainty quantification
-
 ## News
 
 - **April 2026:** Selected as one of 200 young researchers worldwide to attend the 13th Heidelberg Laureate Forum (Heidelberg, Germany) in September 2026.
