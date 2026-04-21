@@ -14,17 +14,15 @@ Before joining Wuppertal, I completed my MSc in Mathematics at the University of
 
 - Scalable Gaussian processes and kernel-based methods
 - Randomized low-rank approximation
-- Sketching methods
 - Objective-aware approximation methods
 - Uncertainty quantification
 
-## Selected updates
+## News
 
-- Fellow of the 13th Heidelberg Laureate Forum
-- Talk at MESIGA25, University of Potsdam
-- Invited talk at TU Dresden
-- Teaching in Introduction to Scientific Computing, Bayesian Learning, and Mathematical Machine Learning
+- **April 2026:** Selected as one of 200 young researchers worldwide to attend the 13th Heidelberg Laureate Forum (Heidelberg, Germany) in September 2026.
+- **March 2026:** Poster presentation at the Numerical Linear Algebra Workshop, Foundations of Computational Mathematics (Vienna, Austria) in July 2026.
+- **February 2026:** Talk at the minisymposium *Kernel Approximation Methods (MS054)*, WCCM–ECCOMAS (Munich, Germany) in July 2026.
 
 ## Contact
 
-The best way to reach me is by email: [schaub@uni-wuppertal.de](mailto:schaub@uni-wuppertal.de)
+The best way to reach me is by email! 
