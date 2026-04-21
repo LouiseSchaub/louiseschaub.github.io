@@ -19,7 +19,7 @@
         <p class="bio">{{ site.profile.bio }}</p>
 
         <ul class="contact">
-          <li><a href="mailto:{{ site.profile.email }}">{{ site.profile.email }}</a></li>
+          <li id="email"></li>
           <li><a href="{{ site.profile.orcid }}">ORCID</a></li>
           <li><a href="{{ site.profile.github }}">GitHub</a></li>
           <li><a href="{{ site.profile.linkedin }}">LinkedIn</a></li>
@@ -43,5 +43,12 @@
         </article>
       </main>
     </div>
+
+    <script>
+      const user = "schaub";
+      const domain = "uni-wuppertal.de";
+      document.getElementById("email").innerHTML =
+        `<a href="mailto:${user}@${domain}">Email</a>`;
+    </script>
   </body>
 </html>
