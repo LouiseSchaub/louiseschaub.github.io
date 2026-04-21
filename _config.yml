@@ -3,7 +3,7 @@ description: Personal website and portfolio
 
 url: "https://louiseschaub.github.io"
 
-theme: Cayman theme
+theme: minima
 
 markdown: kramdown
 
