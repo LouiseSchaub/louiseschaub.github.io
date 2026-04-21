@@ -40,7 +40,7 @@ profile:
   role: "PhD Candidate"
   affiliation: "University of Wuppertal"
   location: "Wuppertal, Germany"
-  image: "/assets/images/bewerbung.png"
+  image: "/assets/images/Bewerbung.png"
   bio: "I work on scalable kernel-based methods and Gaussian processes, with an emphasis on randomized low-rank approximations and objective-aware approaches."
   email: "schaub@uni-wuppertal.de"
   orcid: "https://orcid.org/0009-0001-1992-6474"
