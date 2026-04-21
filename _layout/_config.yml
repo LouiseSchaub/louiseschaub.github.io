@@ -1,0 +1,17 @@
+title: Louise Schaub
+description: Personal website and portfolio
+
+url: "https://louiseschaub.github.io"
+
+theme: minima
+
+markdown: kramdown
+
+author:
+  name: Louise Schaub
+
+github_username: louiseschaub
+
+header_pages:
+  - index.md
+  - about.md
