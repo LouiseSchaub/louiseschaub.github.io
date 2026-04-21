@@ -5,7 +5,7 @@
   --link: #1d4ed8;
   --bg: #ffffff;
   --sidebar-bg: #f8fafc;
-  --max-width: 1200px;
+  --max-width: 1280px;
 }
 
 * {
@@ -33,44 +33,47 @@ a:hover {
   max-width: var(--max-width);
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: 360px 1fr;
   min-height: 100vh;
 }
 
 .sidebar {
   background: var(--sidebar-bg);
-  padding: 40px 28px;
+  padding: 44px 32px 48px 32px;
   border-right: 1px solid var(--line);
 }
 
 .avatar {
-  width: 148px;
-  height: 148px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   object-fit: cover;
   display: block;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .sidebar h1 {
-  font-size: 2rem;
-  line-height: 1.2;
-  margin: 0 0 8px 0;
+  font-size: 2.1rem;
+  line-height: 1.15;
+  margin: 0 0 12px 0;
 }
 
 .role {
   font-weight: 600;
-  margin: 0 0 6px 0;
+  margin: 0 0 10px 0;
 }
 
 .meta {
   color: var(--muted);
-  margin: 0 0 4px 0;
+  margin: 0 0 6px 0;
 }
 
 .bio {
-  margin-top: 22px;
+  margin-top: 28px;
+  margin-bottom: 28px;
   color: var(--text);
+  line-height: 1.75;
+  max-width: 26ch;
 }
 
 .contact {
@@ -80,11 +83,15 @@ a:hover {
 }
 
 .contact li {
-  margin: 8px 0;
+  margin: 12px 0;
+}
+
+.contact a {
+  font-weight: 500;
 }
 
 .content {
-  padding: 32px 48px 56px 48px;
+  padding: 36px 56px 64px 56px;
 }
 
 .nav {
@@ -111,7 +118,8 @@ a:hover {
   font-size: 1.3rem;
 }
 
-.page p, .page li {
+.page p,
+.page li {
   max-width: 760px;
 }
 
@@ -147,6 +155,11 @@ a:hover {
   .sidebar {
     border-right: none;
     border-bottom: 1px solid var(--line);
+    padding: 32px 22px 28px 22px;
+  }
+
+  .bio {
+    max-width: none;
   }
 
   .content {
