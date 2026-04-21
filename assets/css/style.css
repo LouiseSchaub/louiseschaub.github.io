@@ -1,10 +1,9 @@
 :root {
   --text: #1f2937;
   --muted: #6b7280;
-  --line: #e5e7eb;
+  --line: #d1d5db;
   --link: #1d4ed8;
   --bg: #ffffff;
-  --sidebar-bg: #f8fafc;
   --max-width: 1280px;
 }
 
@@ -29,6 +28,8 @@ a:hover {
   text-decoration: underline;
 }
 
+/* Layout */
+
 .site {
   max-width: var(--max-width);
   margin: 0 auto;
@@ -37,10 +38,12 @@ a:hover {
   min-height: 100vh;
 }
 
+/* Sidebar */
+
 .sidebar {
-  background: transparent;
-  padding: 44px 32px 48px 32px;
+  padding: 48px 32px;
   border-right: 1px solid var(--line);
+  background: transparent;
 }
 
 .avatar {
@@ -71,10 +74,11 @@ a:hover {
 .bio {
   margin-top: 28px;
   margin-bottom: 28px;
-  color: var(--text);
-  line-height: 1.75;
+  line-height: 1.7;
   max-width: 26ch;
 }
+
+/* Contact */
 
 .contact {
   list-style: none;
@@ -90,9 +94,13 @@ a:hover {
   font-weight: 500;
 }
 
+/* Main content */
+
 .content {
-  padding: 36px 56px 64px 56px;
+  padding: 40px 64px 64px 64px;
 }
+
+/* Navigation */
 
 .nav {
   display: flex;
@@ -108,6 +116,8 @@ a:hover {
   font-weight: 500;
 }
 
+/* Page content */
+
 .page h1 {
   font-size: 2rem;
   margin-top: 0;
@@ -122,6 +132,8 @@ a:hover {
 .page li {
   max-width: 760px;
 }
+
+/* Archive (talks, teaching, etc.) */
 
 .archive-list {
   margin-top: 24px;
@@ -146,6 +158,8 @@ a:hover {
   font-size: 0.95rem;
   margin: 0 0 8px 0;
 }
+
+/* Responsive */
 
 @media (max-width: 900px) {
   .site {
