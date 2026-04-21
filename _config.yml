@@ -1,15 +1,12 @@
 # ---------------------------
 # Basic Site Settings
 # ---------------------------
-locale                   : "en-US"
-site_theme               : "default"
-title                    : "Welcome!"
-title_separator          : "-"
-name                     : "Louise Schaub"
-description              : "Academic website of Louise Schaub, PhD Candidate in Mathematics at the University of Wuppertal."
-url                      : "https://louiseschaub.github.io"
-baseurl                  : ""
-repository               : "louiseschaub/louiseschaub.github.io"
+title: "Louise Schaub"
+description: "Academic website of Louise Schaub, PhD Candidate in Mathematics at the University of Wuppertal."
+url: "https://louiseschaub.github.io"
+baseurl: ""
+markdown: kramdown
+theme: minima
 
 # ---------------------------
 # Author / Sidebar Profile
