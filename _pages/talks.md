@@ -9,8 +9,8 @@ Below is a list of selected talks and presentations.
 
 ## 2026
 
-- **Contributed talk**, *TBA*, Kernel Approximation Methods (MS054), WCCM–ECCOMAS 2026, July 2026.
-- **Poster presentation**, *TBA*, Numerical Linear Algebra Workshop, Foundations of Computational Mathematics, July 2026.
+- **Contributed talk**, *TBA*, Kernel Approximation Methods (MS054), WCCM–ECCOMAS 2026, Munich, July 2026.
+- **Poster presentation**, *TBA*, Numerical Linear Algebra Workshop, Foundations of Computational Mathematics, Vienna, July 2026.
 
 ## 2025
 
