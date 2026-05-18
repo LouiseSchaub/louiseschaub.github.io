@@ -16,7 +16,7 @@ Bayesian Learning
 </div>
 
 <div class="talk-meta">
-Teaching assistant · Summer Semester 2026
+Teaching assistant · MSc course · Summer Semester 2026
 </div>
 </div>
 
@@ -28,7 +28,7 @@ Mathematical Machine Learning
 </div>
 
 <div class="talk-meta">
-Teaching assistant · Winter Semester 2025/2026
+Teaching assistant · BSc/MSc course · Winter Semester 2025/2026
 </div>
 </div>
 
@@ -40,7 +40,7 @@ Bayesian Learning
 </div>
 
 <div class="talk-meta">
-Teaching assistant · Summer Semester 2025
+Teaching assistant · MSc course · Summer Semester 2025
 </div>
 </div>
 
@@ -52,7 +52,7 @@ Introduction to Scientific Computing
 </div>
 
 <div class="talk-meta">
-Teaching assistant · Winter Semester 2024/2025
+Teaching assistant · MSc Course · Winter Semester 2024/2025
 </div>
 </div>
 
