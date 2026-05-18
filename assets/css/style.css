@@ -91,7 +91,16 @@ a:hover {
 }
 
 .contact a {
-  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+}
+
+.contact i {
+  width: 18px;
+  text-align: center;
+  font-size: 1rem;
 }
 
 /* Main content */
