@@ -50,9 +50,4 @@ Before joining Wuppertal, I completed my MSc in Mathematics at the University of
 <p>Low-rank structures designed for inference objectives rather than matrix reconstruction alone.</p>
 </div>
 
-<div class="research-card">
-<h3>Kernel-Based Methods</h3>
-<p>Efficient approximation methods for kernel matrices arising in machine learning and scientific computing.</p>
-</div>
-
 </div>
