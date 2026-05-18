@@ -63,10 +63,13 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     </div>
 
     <script>
-      const user = "schaub";
-      const domain = "uni-wuppertal.de";
-      document.getElementById("email").innerHTML =
-        `<a href="mailto:${user}@${domain}">Email</a>`;
+    const user = "schaub";
+    const domain = "uni-wuppertal.de";
+  
+    document.getElementById("email").innerHTML =
+      `<a href="mailto:${user}@${domain}">
+        <i class="fa-solid fa-envelope"></i> Email
+      </a>`;
     </script>
   </body>
 </html>
