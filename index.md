@@ -41,6 +41,11 @@ Before joining Wuppertal, I completed my MSc in Mathematics at the University of
 </div>
 
 <div class="research-card">
+<h3>Kernel-Based Methods</h3>
+<p>Efficient approximation methods for kernel matrices arising in machine learning and scientific computing.</p>
+</div>
+
+<div class="research-card">
 <h3>Randomized Numerical Linear Algebra</h3>
 <p>Randomized low-rank approximation and sketching methods for large-scale kernel matrices.</p>
 </div>
