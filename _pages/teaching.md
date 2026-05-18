@@ -1,30 +1,89 @@
 ---
-layout: archive
+layout: default
 title: Teaching
 permalink: /teaching/
-collection_name: teaching
 ---
 
-An overview of my teaching activities at the University of Wuppertal is given below. My teaching focuses on scientific computing and machine learning, with an emphasis on both theoretical foundations and practical methods. I serve as a teaching assistant for the following courses:
+## <i class="fa-solid fa-graduation-cap section-icon"></i> Teaching
 
-## Summer Semester 2026
-- Bayesian Learning
+My teaching activities focus on scientific computing and machine learning, with an emphasis on both theoretical foundations and practical methods.
 
-## Winter Semester 2025/2026
-- Mathematical Machine Learning
+### 2026
 
-## Summer Semester 2025 
-- Bayesian Learning
+<div class="talk-entry">
+<div class="talk-title">
+Bayesian Learning
+</div>
 
-## Winter Semester 2024/2025
-- Introduction to Scientific Computing
+<div class="talk-meta">
+Teaching assistant · University of Wuppertal · Summer Semester 2026
+</div>
+</div>
 
----
+### 2025/2026
 
-## Earlier Teaching Experience
+<div class="talk-entry">
+<div class="talk-title">
+Mathematical Machine Learning
+</div>
 
-During my Bachelor’s and Master’s studies at the University of Bayreuth, I supported several courses. A selection is listed below:
+<div class="talk-meta">
+Teaching assistant · University of Wuppertal · Winter Semester 2025/2026
+</div>
+</div>
 
-- Mathematics for Engineering I & II, Chair of Scientific Computing
-- Introduction to Numerics, Chair of Applied Mathematics
-- Mathematics for Economists, Chair of Business Mathematics
+### 2025
+
+<div class="talk-entry">
+<div class="talk-title">
+Bayesian Learning
+</div>
+
+<div class="talk-meta">
+Teaching assistant · University of Wuppertal · Summer Semester 2025
+</div>
+</div>
+
+### 2024/2025
+
+<div class="talk-entry">
+<div class="talk-title">
+Introduction to Scientific Computing
+</div>
+
+<div class="talk-meta">
+Teaching assistant · University of Wuppertal · Winter Semester 2024/2025
+</div>
+</div>
+
+## <i class="fa-regular fa-folder-open section-icon"></i> Earlier Teaching Experience
+
+<div class="talk-entry">
+<div class="talk-title">
+Mathematics for Engineering I & II
+</div>
+
+<div class="talk-meta">
+Chair of Scientific Computing · University of Bayreuth
+</div>
+</div>
+
+<div class="talk-entry">
+<div class="talk-title">
+Introduction to Numerics
+</div>
+
+<div class="talk-meta">
+Chair of Applied Mathematics · University of Bayreuth
+</div>
+</div>
+
+<div class="talk-entry">
+<div class="talk-title">
+Mathematics for Economists
+</div>
+
+<div class="talk-meta">
+Chair of Business Mathematics · University of Bayreuth
+</div>
+</div>
