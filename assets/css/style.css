@@ -336,3 +336,18 @@ a:hover {
     grid-template-columns: 1fr;
   }
 }
+
+/* Final sidebar color override */
+
+.contact a {
+  color: var(--accent) !important;
+}
+
+.contact a:hover {
+  color: var(--accent-soft) !important;
+  text-decoration: none;
+}
+
+.contact i {
+  color: var(--accent-soft) !important;
+}
