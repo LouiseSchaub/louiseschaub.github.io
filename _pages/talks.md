@@ -10,7 +10,7 @@ permalink: /talks/
 
 <div class="talk-entry">
 <div class="talk-title">
-Kernel Approximation Methods for Gaussian Processes
+Objective-Aware Pivoted Cholesky for Gaussian Processes
 </div>
 
 <div class="talk-meta">
@@ -20,11 +20,11 @@ Contributed talk · WCCM–ECCOMAS 2026 · Munich, Germany · July 2026
 
 <div class="talk-entry">
 <div class="talk-title">
-Poster presentation at the Numerical Linear Algebra Workshop
+Objective-Aware Pivoted Cholesky Factorization for Variational Inference
 </div>
 
 <div class="talk-meta">
-Foundations of Computational Mathematics (FoCM) · Vienna, Austria · July 2026
+Poster presentation · Foundations of Computational Mathematics (FoCM) · Vienna, Austria · July 2026
 </div>
 </div>
 
@@ -36,6 +36,18 @@ Randomized Low-Rank Approximations for Kernel-Based Methods and Gaussian Process
 </div>
 
 <div class="talk-meta">
-MESIGA25 · Wuppertal, Germany · September 2025
+MESIGA25 · Potsdam, Germany · March 2025
+</div>
+</div>
+
+### 2024
+
+<div class="talk-entry">
+<div class="talk-title">
+System Identification by Randomized Low-Rank Approximations
+</div>
+
+<div class="talk-meta">
+Invited Talk · Technical University Dresden, Germany · April 2024
 </div>
 </div>
