@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="{{ site.description }}">
     <link rel="stylesheet" href="{{ '/assets/css/style.css?v=2' | relative_url }}">
+    <link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="icon" type="image/png" href="{{ '/assets/images/lis.png' | relative_url }}">
   </head>
   <body>
@@ -21,9 +23,24 @@
 
         <ul class="contact">
           <li id="email"></li>
-          <li><a href="{{ site.profile.orcid }}">ORCID</a></li>
-          <li><a href="{{ site.profile.github }}">GitHub</a></li>
-          <li><a href="{{ site.profile.linkedin }}">LinkedIn</a></li>
+        
+          <li>
+            <a href="{{ site.profile.orcid }}" target="_blank">
+              <i class="fa-brands fa-orcid"></i> ORCID
+            </a>
+          </li>
+        
+          <li>
+            <a href="https://github.com/{{ site.profile.github }}" target="_blank">
+              <i class="fa-brands fa-github"></i> GitHub
+            </a>
+          </li>
+        
+          <li>
+            <a href="https://linkedin.com/in/{{ site.profile.linkedin }}" target="_blank">
+              <i class="fa-brands fa-linkedin"></i> LinkedIn
+            </a>
+          </li>
         </ul>
       </aside>
 
