@@ -16,17 +16,17 @@ Before joining Wuppertal, I completed my MSc in Mathematics at the University of
 
 <div class="news-item">
 <span class="news-date">April 2026</span>
-<span>Selected as one of 200 young researchers worldwide to attend the 13th Heidelberg Laureate Forum in Heidelberg, Germany.</span>
+<span>Selected as one of 200 young researchers worldwide to attend the 13th Heidelberg Laureate Forum in Heidelberg, Germany in September 2026.</span>
 </div>
 
 <div class="news-item">
 <span class="news-date">March 2026</span>
-<span>Poster presentation at the Numerical Linear Algebra Workshop, Foundations of Computational Mathematics.</span>
+<span> Upcoming poster presentation at the Numerical Linear Algebra Workshop, Foundations of Computational Mathematics, Vienna, Austria, in July 2026.</span>
 </div>
 
 <div class="news-item">
 <span class="news-date">February 2026</span>
-<span>Talk at the minisymposium <em>Kernel Approximation Methods (MS054)</em>, WCCM–ECCOMAS 2026.</span>
+<span>Talk at the minisymposium <em>Kernel Approximation Methods (MS054)</em>, WCCM–ECCOMAS, Munich, Germany in July 2026.</span>
 </div>
 
 </div>
