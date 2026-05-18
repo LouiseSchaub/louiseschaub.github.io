@@ -2,9 +2,14 @@
   --text: #111827;
   --muted: #6b7280;
   --line: #e5e7eb;
-  --link: #1d4ed8;
+  --link: #1f4f78;
   --bg: #ffffff;
   --max-width: 1120px;
+
+  --accent: #1f4f78;
+  --accent-soft: #5f8ea8;
+  --accent-light: #eef5fb;
+  --highlight: #d9bf3b;
 }
 
 * {
@@ -96,15 +101,20 @@ a:hover {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: var(--text);
+  color: var(--accent);
   font-weight: 400;
+}
+
+.contact a:hover {
+  color: var(--accent-soft);
+  text-decoration: none;
 }
 
 .contact i {
   width: 18px;
   text-align: center;
   font-size: 0.95rem;
-  color: var(--muted);
+  color: var(--accent-soft);
 }
 
 /* Main content */
@@ -200,15 +210,6 @@ a:hover {
     padding: 28px 22px 40px 22px;
     max-width: none;
   }
-}
-
-/* Bird-inspired section styling */
-
-:root {
-  --accent: #1f4f78;
-  --accent-soft: #5f8ea8;
-  --accent-light: #eef5fb;
-  --highlight: #d9bf3b;
 }
 
 .section-icon {
