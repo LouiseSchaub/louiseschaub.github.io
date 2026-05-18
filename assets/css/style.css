@@ -371,3 +371,22 @@ a:hover {
   transition: transform 0.18s ease, box-shadow 0.18s ease;
   will-change: transform;
 }
+
+/* Talks */
+
+.talk-entry {
+  margin: 22px 0 30px 0;
+  padding-left: 18px;
+  border-left: 3px solid var(--accent-light);
+}
+
+.talk-title {
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.talk-meta {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
