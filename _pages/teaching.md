@@ -4,7 +4,7 @@ title: Teaching
 permalink: /teaching/
 ---
 
-## <i class="fa-solid fa-graduation-cap section-icon"></i> Teaching
+## <i class="fa-solid fa-graduation-cap section-icon"></i> Teaching at the University of Wuppertal
 
 My teaching activities focus on scientific computing and machine learning, with an emphasis on both theoretical foundations and practical methods.
 
@@ -16,7 +16,7 @@ Bayesian Learning
 </div>
 
 <div class="talk-meta">
-Teaching assistant · University of Wuppertal · Summer Semester 2026
+Teaching assistant · Summer Semester 2026
 </div>
 </div>
 
@@ -28,7 +28,7 @@ Mathematical Machine Learning
 </div>
 
 <div class="talk-meta">
-Teaching assistant · University of Wuppertal · Winter Semester 2025/2026
+Teaching assistant · Winter Semester 2025/2026
 </div>
 </div>
 
@@ -40,7 +40,7 @@ Bayesian Learning
 </div>
 
 <div class="talk-meta">
-Teaching assistant · University of Wuppertal · Summer Semester 2025
+Teaching assistant · Summer Semester 2025
 </div>
 </div>
 
@@ -52,7 +52,7 @@ Introduction to Scientific Computing
 </div>
 
 <div class="talk-meta">
-Teaching assistant · University of Wuppertal · Winter Semester 2024/2025
+Teaching assistant · Winter Semester 2024/2025
 </div>
 </div>
 
