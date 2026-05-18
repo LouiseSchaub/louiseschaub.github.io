@@ -6,7 +6,7 @@ permalink: /teaching/
 
 ## <i class="fa-solid fa-graduation-cap section-icon"></i> Teaching at the University of Wuppertal
 
-My teaching activities focus on scientific computing and machine learning, with an emphasis on both theoretical foundations and practical methods.
+My teaching activities focus on scientific computing and machine learning, with an emphasis on both theoretical foundations and practical methods. In addition to tutorial instruction, I prepare exercise sheets and supplementary course materials for the following courses.
 
 ### 2026
 
