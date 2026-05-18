@@ -1,21 +1,41 @@
 ---
-layout: archive
-title: Talks & Presentations
+layout: default
+title: Talks & Presentation
 permalink: /talks/
-collection_name: talks
 ---
 
-Below is a list of selected talks and presentations.
+## <i class="fa-solid fa-microphone section-icon"></i> Talks
 
-## 2026
+### 2026
 
-- **Contributed talk**, *TBA*, Kernel Approximation Methods (MS054), WCCM–ECCOMAS 2026, Munich, July 2026.
-- **Poster presentation**, *TBA*, Numerical Linear Algebra Workshop, Foundations of Computational Mathematics, Vienna, July 2026.
+<div class="talk-entry">
+<div class="talk-title">
+Kernel Approximation Methods for Gaussian Processes
+</div>
 
-## 2025
+<div class="talk-meta">
+Contributed talk · WCCM–ECCOMAS 2026 · Munich, Germany · July 2026
+</div>
+</div>
 
-- **Contributed talk**, *Randomized Low-Rank Approximations for Kernel-Based Methods and Gaussian Processes*, MESIGA25, University of Potsdam, March 2025.
+<div class="talk-entry">
+<div class="talk-title">
+Poster presentation at the Numerical Linear Algebra Workshop
+</div>
 
-## 2024
+<div class="talk-meta">
+Foundations of Computational Mathematics (FoCM) · Vienna, Austria · July 2026
+</div>
+</div>
 
-- **Invited talk**, *System Identification by Randomized Low-Rank Approximations*, Technical University of Dresden, April 2024.
+### 2025
+
+<div class="talk-entry">
+<div class="talk-title">
+Randomized Low-Rank Approximations for Kernel-Based Methods and Gaussian Processes
+</div>
+
+<div class="talk-meta">
+MESIGA25 · Wuppertal, Germany · September 2025
+</div>
+</div>
