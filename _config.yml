@@ -39,7 +39,7 @@ profile:
   name: "Louise Schaub"
   role: "PhD Candidate"
   affiliation: "University of Wuppertal"
-  location: "Wuppertal, Germany"
+  location: "Germany"
   image: "/assets/images/profil_crop.jpg"
   bio: "I work on scalable kernel-based methods and Gaussian processes, focusing on randomized low-rank approximations and objective-aware approaches."
   email: "schaub@uni-wuppertal.de"
