@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Talks & Presentation
+title: Talks & Presentations
 permalink: /talks/
 ---
 
@@ -14,17 +14,7 @@ Objective-Aware Pivoted Cholesky for Gaussian Processes
 </div>
 
 <div class="talk-meta">
-Contributed Talk · WCCM–ECCOMAS 2026 · Munich, Germany · July 2026
-</div>
-</div>
-
-<div class="talk-entry">
-<div class="talk-title">
-Objective-Aware Pivoted Cholesky Factorization for Variational Inference
-</div>
-
-<div class="talk-meta">
-Poster Presentation · Foundations of Computational Mathematics (FoCM) · Vienna, Austria · July 2026
+Contributed talk · WCCM–ECCOMAS 2026 · Munich, Germany · July 2026
 </div>
 </div>
 
@@ -36,7 +26,7 @@ Randomized Low-Rank Approximations for Kernel-Based Methods and Gaussian Process
 </div>
 
 <div class="talk-meta">
-Contributed Talk · MESIGA25 · Potsdam, Germany · March 2025
+Contributed talk · MESIGA25 · Potsdam, Germany · March 2025
 </div>
 </div>
 
@@ -48,6 +38,22 @@ System Identification by Randomized Low-Rank Approximations
 </div>
 
 <div class="talk-meta">
-Invited Talk · Technical University Dresden, Germany · April 2024
+Invited talk · Technical University Dresden, Germany · April 2024
+</div>
+</div>
+
+---
+
+## <i class="fa-regular fa-file-lines section-icon"></i> Posters
+
+### 2026
+
+<div class="talk-entry">
+<div class="talk-title">
+Objective-Aware Pivoted Cholesky Factorization for Variational Inference
+</div>
+
+<div class="talk-meta">
+Poster presentation · Foundations of Computational Mathematics (FoCM) · Vienna, Austria · July 2026
 </div>
 </div>
