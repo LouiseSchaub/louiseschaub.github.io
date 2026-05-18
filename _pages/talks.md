@@ -42,7 +42,6 @@ Invited talk · Technical University Dresden, Germany · April 2024
 </div>
 </div>
 
----
 
 ## <i class="fa-regular fa-file-lines section-icon"></i> Posters
 
