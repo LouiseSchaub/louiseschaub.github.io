@@ -14,7 +14,7 @@ Objective-Aware Pivoted Cholesky for Gaussian Processes
 </div>
 
 <div class="talk-meta">
-Contributed talk · WCCM–ECCOMAS 2026 · Munich, Germany · July 2026
+Contributed Talk · WCCM–ECCOMAS 2026 · Munich, Germany · July 2026
 </div>
 </div>
 
@@ -24,7 +24,7 @@ Objective-Aware Pivoted Cholesky Factorization for Variational Inference
 </div>
 
 <div class="talk-meta">
-Poster presentation · Foundations of Computational Mathematics (FoCM) · Vienna, Austria · July 2026
+Poster Presentation · Foundations of Computational Mathematics (FoCM) · Vienna, Austria · July 2026
 </div>
 </div>
 
@@ -36,7 +36,7 @@ Randomized Low-Rank Approximations for Kernel-Based Methods and Gaussian Process
 </div>
 
 <div class="talk-meta">
-MESIGA25 · Potsdam, Germany · March 2025
+Contributed Talk · MESIGA25 · Potsdam, Germany · March 2025
 </div>
 </div>
 
