@@ -21,12 +21,12 @@ Before joining Wuppertal, I completed my MSc in Mathematics at the University of
 
 <div class="news-item">
 <span class="news-date">March 2026</span>
-<span> Upcoming poster presentation at the Numerical Linear Algebra Workshop, Foundations of Computational Mathematics, Vienna, Austria, in July 2026.</span>
+<span> Upcoming poster presentation at the Numerical Linear Algebra Workshop, Foundations of Computational Mathematics in Vienna, Austria, in July 2026.</span>
 </div>
 
 <div class="news-item">
 <span class="news-date">February 2026</span>
-<span>Talk at the minisymposium <em>Kernel Approximation Methods (MS054)</em>, WCCM–ECCOMAS, Munich, Germany in July 2026.</span>
+<span>Talk at the minisymposium <em>Kernel Approximation Methods (MS054)</em>, WCCM–ECCOMAS in Munich, Germany in July 2026.</span>
 </div>
 
 </div>
