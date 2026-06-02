@@ -4,9 +4,7 @@ title: Publications
 permalink: /publications/
 ---
 
-## <i class="fa-solid fa-file-lines section-icon"></i> Publications
-
-### Preprints
+## <i class="fa-solid fa-file-lines section-icon"></i> Preprints
 
 <div class="talk-entry">
 <div class="talk-title">
