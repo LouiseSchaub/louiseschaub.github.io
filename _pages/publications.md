@@ -29,7 +29,7 @@ Pivoted Cholesky factorizations construct low-rank approximations of symmetric p
 <p>
 <strong>Keywords:</strong>
 Pivoted Cholesky; Gaussian processes; Variational inference;
-Kernel approximation; Low-rank methods; Scientific machine learning
+Kernel approximation; Low-rank methods
 </p>
 
 </details>
