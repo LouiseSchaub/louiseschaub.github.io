@@ -16,7 +16,7 @@ Before joining Wuppertal, I completed my MSc in Mathematics at the University of
 
 <div class="news-item">
 <span class="news-date">June 2026</span>
-<span>New preprint "Variational Free Energy Pivot Selection for Pivoted Cholesky" (joint work with Peter Zaspel) is out. </span>
+<span>New preprint "Variational Free Energy Pivot Selection for Pivoted Cholesky" (joint work with Peter Zaspel) is out: <a href="https://arxiv.org/abs/2606.01821" target="_blank">arXiv</a>. </span>
 </div>
 
 <div class="news-item">
