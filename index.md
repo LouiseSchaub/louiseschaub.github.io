@@ -15,6 +15,11 @@ Before joining Wuppertal, I completed my MSc in Mathematics at the University of
 <div class="news-card">
 
 <div class="news-item">
+<span class="news-date">June 2026</span>
+<span>New preprint "Variational Free Energy Pivot Selection for Pivoted Cholesky" (joint work with Peter Zaspel) is out. </span>
+</div>
+
+<div class="news-item">
 <span class="news-date">April 2026</span>
 <span>Selected as one of 200 young researchers worldwide to attend the 13th Heidelberg Laureate Forum in Heidelberg, Germany in September 2026.</span>
 </div>
