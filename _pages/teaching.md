@@ -72,7 +72,7 @@ Teaching assistant · MSc course · Summer Semester 2025
 </div>
 </div>
 
-### 2024/2025
+### 2024
 
 <div class="talk-entry">
 <div class="talk-title">
