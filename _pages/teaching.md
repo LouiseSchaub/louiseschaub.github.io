@@ -12,6 +12,26 @@ My teaching activities focus on scientific computing and machine learning, with 
 
 <div class="talk-entry">
 <div class="talk-title">
+Machine Learning and Uncertainty Quantification: Methods & Applications
+</div>
+
+<div class="talk-meta">
+Advisor · BSc/MSc seminar · Winter Semester 2026/2027
+</div>
+</div>
+
+<div class="talk-entry">
+<div class="talk-title">
+Introduction to Scientific Computing
+</div>
+
+<div class="talk-meta">
+Teaching assistant · MSc course · Winter Semester 2026/2027
+</div>
+</div>
+
+<div class="talk-entry">
+<div class="talk-title">
 Bayesian Learning
 </div>
 
@@ -30,7 +50,7 @@ Advisor · Bachelor thesis · Summer Semester 2026
 </div>
 </div>
 
-### 2025/2026
+### 2025
 
 <div class="talk-entry">
 <div class="talk-title">
@@ -41,8 +61,6 @@ Mathematical Machine Learning
 Teaching assistant · BSc/MSc course · Winter Semester 2025/2026
 </div>
 </div>
-
-### 2025
 
 <div class="talk-entry">
 <div class="talk-title">
