@@ -35,7 +35,6 @@ permalink: /cv/
   <div class="talk-meta">
     University of Bayreuth, Germany · October 2021-September 2024
   </div>
-</div>
 
 <div class="talk-description">
     Master's thesis:
