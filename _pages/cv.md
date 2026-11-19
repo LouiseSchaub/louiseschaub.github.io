@@ -21,7 +21,7 @@ permalink: /cv/
 ## <i class="fa-solid fa-graduation-cap section-icon"></i> Education
 
 <div class="talk-entry">
-  <div class="talk-title">PhD in Mathematics (ongoing)</div>
+  <div class="talk-title">PhD in Computer Science (ongoing)</div>
   <div class="talk-meta">
     University of Wuppertal, Germany · October 2024–present
   </div>
@@ -34,6 +34,17 @@ permalink: /cv/
   <div class="talk-title">M.Sc. in Mathematics</div>
   <div class="talk-meta">
     University of Bayreuth, Germany · October 2021-September 2024
+  </div>
+</div>
+
+<div class="talk-description">
+    Master's thesis:
+    <a href="{{ '/assets/docs/SIRLoRA-Thesis-Schaub.pdf' | relative_url }}"
+       target="_blank"
+       rel="noopener noreferrer">
+      <em>[System identification by Randomized Low-Rank Approximations]</em>
+      <i class="fa-solid fa-arrow-up-right-from-square"></i>
+    </a>
   </div>
 </div>
 
