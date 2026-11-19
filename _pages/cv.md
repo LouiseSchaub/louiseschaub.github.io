@@ -43,7 +43,7 @@ permalink: /cv/
     <a href="{{ '/assets/docs/SIRLoRA-Thesis-Schaub.pdf' | relative_url }}"
        target="_blank"
        rel="noopener noreferrer">
-      <em>[Title of your Master's thesis]</em>
+      <em>[System Identification by Randomized Low-Rank Approximations]</em>
       <i class="fa-solid fa-arrow-up-right-from-square"></i>
     </a>
   </div>
