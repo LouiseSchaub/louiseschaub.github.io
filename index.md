@@ -41,13 +41,13 @@ Before joining Wuppertal, I completed my MSc in Mathematics at the University of
 <div class="research-grid">
 
 <div class="research-card">
-<h3>Gaussian Processes</h3>
-<p>Scalable probabilistic regression and uncertainty quantification with kernel-based models.</p>
+<h3>Gaussian Processes & Kernel Methods</h3>
+<p>Scalable probabilistic regression and uncertainty quantification with kernel-based models in machine learning and scientific computing.</p>
 </div>
 
 <div class="research-card">
-<h3>Kernel-Based Methods</h3>
-<p>Efficient approximation methods for kernel matrices arising in machine learning and scientific computing.</p>
+<h3>Objective-Aware Approximation</h3>
+<p>Low-rank structures designed for inference objectives rather than matrix reconstruction alone.</p>
 </div>
 
 <div class="research-card">
@@ -56,8 +56,8 @@ Before joining Wuppertal, I completed my MSc in Mathematics at the University of
 </div>
 
 <div class="research-card">
-<h3>Objective-Aware Approximation</h3>
-<p>Low-rank structures designed for inference objectives rather than matrix reconstruction alone.</p>
+<h3>System Identification</h3>
+<p>Identification of dynamical system using large amounts of data using low-rank approximations.</p>
 </div>
 
 </div>
