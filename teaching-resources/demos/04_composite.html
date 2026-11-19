@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Interactive demo for Exercise Sheet 04, Exercises 2-4: composite trapezoidal and Simpson rules, their weights, convergence orders and the error bounds of Example 4.5.">
+<title>Composite Rules and Their Convergence</title>
+<script>
+  /* ?embed hides the page heading and explanation, for use inside an <iframe> */
+  if (new URLSearchParams(location.search).has("embed")) document.documentElement.classList.add("embed");
+</script>
+<style>
+:root {
+  --paper: #f6f8f7;
+  --grid: rgba(40, 92, 120, 0.07);
+  --card: #ffffff;
+  --ink: #17232b;
+  --muted: #5a6a73;
+  --line: #d6dfe2;
+  --accent: #1f5f86;
+  --accent-soft: rgba(31, 95, 134, 0.13);
+  --eig: #b4570f;
+  --good: #1d7a4c;
+  --good-soft: #e2f3ea;
+  --bad: #b03a2e;
+  --bad-soft: #f8e5e2;
+  --plotgrid: #e3e9eb;
+  --c1: #1f6fb2; --c2: #d9731a; --c3: #2a9d5c; --c4: #c0392b; --c5: #7d5ba6; --c6: #8c6239; --c7: #c2497f; --c8: #5f6b73;
+  --f-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --f-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --f-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #12191d; --grid: rgba(140, 190, 215, 0.05); --card: #1a2328; --ink: #e3ebee; --muted: #93a4ad;
+    --line: #2c3a41; --accent: #7fb8dc; --accent-soft: rgba(127, 184, 220, 0.16); --eig: #f0a35e;
+    --good: #6fcf9b; --good-soft: #173527; --bad: #f0907f; --bad-soft: #3d201c; --plotgrid: #243037; color-scheme: dark;
+    --c1: #79b6e8; --c2: #f2a65a; --c3: #6fcf9b; --c4: #f0907f; --c5: #b9a0e0; --c6: #d2a679; --c7: #ec8fbd; --c8: #a9b6bd;
+  }
+}
+:root[data-theme="dark"] {
+    --c1: #79b6e8; --c2: #f2a65a; --c3: #6fcf9b; --c4: #f0907f; --c5: #b9a0e0; --c6: #d2a679; --c7: #ec8fbd; --c8: #a9b6bd;
+
+  --paper: #12191d; --grid: rgba(140, 190, 215, 0.05); --card: #1a2328; --ink: #e3ebee; --muted: #93a4ad;
+  --line: #2c3a41; --accent: #7fb8dc; --accent-soft: rgba(127, 184, 220, 0.16); --eig: #f0a35e;
+  --good: #6fcf9b; --good-soft: #173527; --bad: #f0907f; --bad-soft: #3d201c; --plotgrid: #243037; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  background-color: var(--paper);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+}
+.wrap {
+  max-width: 1180px; margin: 0 auto; padding-block: 32px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 20px;
+}
+header.page { display: grid; gap: 8px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--f-display); font-weight: 600; font-size: clamp(28px, 5vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+.lede { margin: 0; color: var(--muted); max-width: 70ch; }
+button {
+  font: inherit; font-size: 14px; cursor: pointer; border-radius: 7px; border: 1px solid var(--line);
+  background: transparent; color: var(--ink); padding: 6px 12px;
+}
+button:hover { border-color: var(--accent); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; min-width: 0; }
+.explain { display: grid; gap: 10px; }
+.explain h2 { font-family: var(--f-display); font-weight: 600; font-size: 20px; margin: 0; }
+.explain p { margin: 0; max-width: 72ch; }
+.tablewrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 7px 6px; border-top: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; border-top: 0; }
+footer { color: var(--muted); font-size: 13px; }
+.main { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 880px) { .main { grid-template-columns: minmax(0, 1fr); } }
+.plots, .side { display: grid; gap: 16px; min-width: 0; }
+.plotcard { display: grid; gap: 6px; }
+.plottitle { font-family: var(--f-display); font-weight: 600; font-size: 18px; margin: 0 0 6px; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.subtitle { font-family: var(--f-body); font-weight: 600; font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+.hint { font-family: var(--f-body); font-weight: 400; font-size: 13px; color: var(--muted); }
+.card h2 { font-family: var(--f-display); font-weight: 600; font-size: 18px; margin: 0 0 10px; }
+svg { width: 100%; height: auto; display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { display: inline-block; width: 22px; height: 0; border-top: 2.5px solid; }
+.legend i.dash { border-top-style: dashed; }
+.legend i.dot { border-top-style: dotted; border-top-width: 3px; }
+td, th { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+table.small td, table.small th { padding: 3px 8px; }
+td.ok { color: var(--good); font-weight: 600; }
+td.no { color: var(--bad); font-weight: 600; }
+.note { font-size: 13px; color: var(--muted); margin: 8px 0 0; max-width: 72ch; }
+.note:empty, .verdict:empty { display: none; }
+#warn { color: var(--bad); font-weight: 600; }
+.verdict { margin: 8px 0 0; font-size: 14px; max-width: 80ch; }
+.verdict.no { color: var(--bad); }
+.field { display: grid; gap: 4px; font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+select { font: inherit; font-size: 14px; width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 7px; background: var(--card); color: var(--ink); }
+.rangerow { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 6px; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+.rangerow output { font-family: var(--f-mono); color: var(--ink); }
+.rangerow input { flex-basis: 100%; width: 100%; accent-color: var(--accent); }
+.seg { display: inline-flex; }
+.seg button { font-family: var(--f-body); font-size: 13px; padding: 4px 12px; border-radius: 0; }
+.seg button:first-child { border-radius: 6px 0 0 6px; }
+.seg button:last-child { border-radius: 0 6px 6px 0; border-left: 0; }
+table.small td:first-child { white-space: normal; }
+table.small td:nth-child(2) { text-align: right; }
+
+/* Embed mode (?embed): only the interactive part, for iframes */
+html.embed .wrap { padding-block: 4px 8px; }
+html.embed .standalone-only { display: none !important; }
+html.embed body { background-image: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="page standalone-only">
+    <span class="eyebrow">Introduction to Scientific Computing · Chapter 4 · Exercise Sheet 04, Exercises 2–4</span>
+    <h1>Composite Rules and Their Convergence</h1>
+    <p class="lede">A composite rule splits [a, b] into N intervals of width h = (b − a)/N and applies the trapezoidal or Simpson's rule on each piece (Definition 4.3). Each node then gets a weight. Watch how the error falls as N grows, and compare it with the error bounds of Example 4.5.</p>
+  </header>
+
+  <div class="main">
+    <div class="plots">
+      <section class="card plotcard" aria-label="Composite rule">
+        <h2 class="plottitle"><span id="plotTitle">Composite rule</span></h2>
+        <svg id="plotF" viewBox="0 0 640 270" role="img" aria-label="The function with the panels of the composite rule"></svg>
+        <h3 class="subtitle">Weights αᵢ / h at the nodes</h3>
+        <svg id="plotW" viewBox="0 0 640 86" role="img" aria-label="The weights of the composite rule at each node"></svg>
+        <p class="note" id="warn" role="status"></p>
+      </section>
+    </div>
+
+    <div class="side">
+      <section class="card">
+        <h2>Setup</h2>
+        <label class="field" for="fSel">function f on [0, 2]
+          <select id="fSel">
+            <option value="x2">x²</option>
+            <option value="x4">x⁴</option>
+            <option value="inv">(x + 1)⁻¹</option>
+            <option value="sq">√(1 + x²)</option>
+            <option value="sin" selected>sin x (Exercise 3c)</option>
+            <option value="exp">eˣ</option>
+            <option value="x4inv">(x + 4)⁻¹ (Exercise 4)</option>
+          </select></label>
+        <div class="field">rule
+          <span class="seg" role="group" aria-label="Rule">
+            <button type="button" id="rT" class="on" aria-pressed="true">trapezoidal</button><button type="button" id="rS" aria-pressed="false">Simpson</button>
+          </span>
+        </div>
+        <label class="rangerow" for="nIn">N = <output id="nOut">4</output> intervals, <output id="nodesOut">5</output> nodes, h = <output id="hOut">0.5</output>
+          <input id="nIn" type="range" min="1" max="32" step="1" value="4"></label>
+        <p class="note">The sheet counts nodes: its N is this N + 1.</p>
+      </section>
+
+      <section class="card">
+        <h2>Result and bounds</h2>
+        <div class="tablewrap"><table class="small"><tbody id="resRows"></tbody></table></div>
+        <p class="verdict" id="resVerdict"></p>
+      </section>
+    </div>
+  </div>
+
+  <section class="card plotcard" aria-label="Convergence">
+    <h2 class="plottitle">Error against N, log–log <span class="hint">N = 2, 4, 8, …, 131 072 intervals</span></h2>
+    <svg id="plotC" viewBox="0 0 900 340" role="img" aria-label="Quadrature error against the number of intervals on log-log axes"></svg>
+    <div class="legend" id="legC"></div>
+    <p class="verdict" id="convVerdict"></p>
+  </section>
+
+  <section class="card explain standalone-only">
+    <h2>What to try</h2>
+    <p><b>The weights (Exercise 2a).</b> With the trapezoidal rule the weights are 1/2, 1, …, 1, 1/2 (times h). With Simpson's rule every pair of intervals is one panel, and the weights become 1/3, 4/3, 2/3, 4/3, …, 4/3, 1/3: interior even nodes belong to two panels. All weights together are b − a = 2.</p>
+    <p><b>Odd N with Simpson.</b> Set N to an odd number. One interval is left over, and the weight pattern no longer fits. The page then applies the pattern blindly, as a loop over the node index would, and the result is wrong. This is what happens in Exercise 4 if N is computed from a bound with ceil() and not rounded up to an even number.</p>
+    <p><b>Convergence (Exercise 3c).</b> In the log–log plot the trapezoidal error falls with slope −2 and Simpson's with slope −4: doubling N divides the error by 4 and 16 (Example 4.5). For large N Simpson's error stops at about 10⁻¹⁵ and then fluctuates: this is rounding error (Chapter 2), not the method.</p>
+    <p><b>The bounds (Exercise 4).</b> Choose (x + 4)⁻¹. The dashed lines are the bounds of Example 4.5. The trapezoidal bound and Simpson's bound with 1/180 lie above the error, as they must. The dotted line is Simpson's bound as printed in the notes, with 1/2880: it lies below the actual error, so it is not a bound. The constant 1/2880 belongs to the panel width 2h, not to the node spacing h.</p>
+  </section>
+
+  <footer class="standalone-only">Companion to Exercise Sheet 04, Exercises 2–4, and §4.2 of the lecture notes (Definition 4.3, (4.1)–(4.7), Example 4.5). Interval [a, b] = [0, 2].</footer>
+</div>
+<script>
+(function () {
+  const A = 0, B = 2;
+  const NS = "http://www.w3.org/2000/svg";
+  const MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+  const SUP = "⁰¹²³⁴⁵⁶⁷⁸⁹", SUBS = "₀₁₂₃₄₅₆₇₈₉";
+  const sub = n => String(n).split("").map(d => SUBS[+d]).join("");
+  const $ = id => document.getElementById(id);
+  const F = {
+    x2: { name: "x²", f: x => x * x, I: 8 / 3, M2: 2, M4: 0 },
+    x4: { name: "x⁴", f: x => x ** 4, I: 32 / 5, M2: 48, M4: 24 },
+    inv: { name: "(x + 1)⁻¹", f: x => 1 / (x + 1), I: Math.log(3), M2: 2, M4: 24 },
+    sq: { name: "√(1 + x²)", f: x => Math.sqrt(1 + x * x), I: Math.sqrt(5) + 0.5 * Math.asinh(2), M2: 1, M4: 3 },
+    sin: { name: "sin x", f: Math.sin, I: 1 - Math.cos(2), M2: 1, M4: 1 },
+    exp: { name: "eˣ", f: Math.exp, I: Math.exp(2) - 1, M2: Math.exp(2), M4: Math.exp(2) },
+    x4inv: { name: "(x + 4)⁻¹", f: x => 1 / (x + 4), I: Math.log(1.5), M2: 1 / 32, M4: 24 / 1024 },
+  };
+  const st = { key: "sin", rule: "T", N: 4 };
+  const CONV_N = Array.from({ length: 17 }, (_, k) => 2 ** (k + 1));
+  let cache = {};
+
+  // weights in units of h, applied blindly by index parity for Simpson (as a simple loop would)
+  function weights(N, rule) {
+    const w = new Array(N + 1);
+    if (rule === "T") { for (let i = 0; i <= N; i++) w[i] = i === 0 || i === N ? 0.5 : 1; }
+    else { for (let i = 0; i <= N; i++) w[i] = i === 0 || i === N ? 1 / 3 : i % 2 ? 4 / 3 : 2 / 3; }
+    return w;
+  }
+  function composite(f, N, rule) {           // plain summation, as students write it
+    const h = (B - A) / N; let s;
+    if (rule === "T") { s = 0.5 * (f(A) + f(B)); for (let i = 1; i < N; i++) s += f(A + i * h); return h * s; }
+    s = f(A) + f(B); for (let i = 1; i < N; i++) s += (i % 2 ? 4 : 2) * f(A + i * h); return h / 3 * s;
+  }
+  const bound = (o, N, which) => { const h = (B - A) / N; return which === "T" ? (B - A) / 8 * h * h * o.M2 : which === "S" ? (B - A) / 180 * h ** 4 * o.M4 : (B - A) / 2880 * h ** 4 * o.M4; };
+  const sci = v => { if (v === 0) return "0"; const e = Math.floor(Math.log10(Math.abs(v))); if (e >= -3 && e < 4) return (+v.toPrecision(4)).toString().replace("-", "−"); return (v / 10 ** e).toFixed(2).replace("-", "−") + "·10" + (e < 0 ? "⁻" : "") + String(Math.abs(e)).split("").map(d => SUP[+d]).join(""); };
+  const css = k => getComputedStyle(document.documentElement).getPropertyValue(k).trim();
+  function el(tag, attrs, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; }
+
+  function convData(key) {
+    if (cache[key]) return cache[key];
+    const o = F[key];
+    cache[key] = CONV_N.map(N => ({ N, eT: Math.abs(o.I - composite(o.f, N, "T")), eS: Math.abs(o.I - composite(o.f, N, "S")) }));
+    return cache[key];
+  }
+
+  function render() {
+    const o = F[st.key], f = o.f, N = st.N, rule = st.rule, h = (B - A) / N, odd = rule === "S" && N % 2 === 1;
+    const ink = css("--ink"), muted = css("--muted"), grid = css("--plotgrid"), card = css("--card");
+    const cT = css("--c1"), cS = css("--c2"), bad = css("--bad");
+    const cR = rule === "T" ? cT : cS;
+
+    // ---- function plot with panels ----
+    const svg = $("plotF"); svg.innerHTML = "";
+    const W = 640, H = 270, ML = 48, MR = 12, MT = 12, MB = 26, X0 = -0.05, X1 = 2.05;
+    let lo = 0, hi = 0; for (let k = 0; k <= 200; k++) { const v = f(A + (B - A) * k / 200); lo = Math.min(lo, v); hi = Math.max(hi, v); }
+    const pad = 0.08 * (hi - lo || 1); lo -= pad; hi += pad;
+    const X = v => ML + (v - X0) / (X1 - X0) * (W - ML - MR), Y = v => MT + (hi - v) / (hi - lo) * (H - MT - MB);
+    const steps = [0.25, 0.5, 1, 2, 5, 10]; const step = steps.find(s => (hi - lo) / s <= 6) || 20;
+    for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) {
+      el("line", { x1: ML, x2: W - MR, y1: Y(v), y2: Y(v), stroke: grid, "stroke-width": Math.abs(v) < 1e-9 ? 1.6 : 1 }, svg);
+      el("text", { x: ML - 6, y: Y(v) + 4, "text-anchor": "end", fill: muted, "font-size": 11, "font-family": MONO }, svg).textContent = String(+v.toFixed(2)).replace("-", "−");
+    }
+    [0, 0.5, 1, 1.5, 2].forEach(v => el("text", { x: X(v), y: H - 6, "text-anchor": "middle", fill: muted, "font-size": 11, "font-family": MONO }, svg).textContent = v);
+    const xi = i => A + i * h;
+    const panelPath = pts => "M" + X(pts[0][0]).toFixed(1) + "," + Y(0).toFixed(1) + pts.map(([x, y]) => "L" + X(x).toFixed(1) + "," + Y(y).toFixed(1)).join("") + "L" + X(pts[pts.length - 1][0]).toFixed(1) + "," + Y(0).toFixed(1) + "Z";
+    if (rule === "T") {
+      for (let i = 0; i < N; i++) {
+        const pts = [[xi(i), f(xi(i))], [xi(i + 1), f(xi(i + 1))]];
+        el("path", { d: panelPath(pts), fill: cR, opacity: i % 2 ? 0.12 : 0.22, stroke: cR, "stroke-width": 1.6 }, svg);
+      }
+    } else {
+      const q = Math.floor(N / 2);
+      for (let p = 0; p < q; p++) {
+        const x0 = xi(2 * p), x1 = xi(2 * p + 1), x2 = xi(2 * p + 2), y0 = f(x0), y1 = f(x1), y2 = f(x2);
+        const par = x => y0 * (x - x1) * (x - x2) / ((x0 - x1) * (x0 - x2)) + y1 * (x - x0) * (x - x2) / ((x1 - x0) * (x1 - x2)) + y2 * (x - x0) * (x - x1) / ((x2 - x0) * (x2 - x1));
+        const pts = Array.from({ length: 25 }, (_, k) => { const x = x0 + (x2 - x0) * k / 24; return [x, par(x)]; });
+        el("path", { d: panelPath(pts), fill: cR, opacity: p % 2 ? 0.12 : 0.22, stroke: cR, "stroke-width": 1.6 }, svg);
+      }
+      if (odd) el("rect", { x: X(xi(N - 1)), y: MT, width: X(xi(N)) - X(xi(N - 1)), height: Y(0) - MT, fill: bad, opacity: 0.18 }, svg);
+    }
+    el("path", { d: Array.from({ length: 301 }, (_, k) => { const x = X0 + (X1 - X0) * k / 300; return (k ? "L" : "M") + X(x).toFixed(1) + "," + Y(f(x)).toFixed(1); }).join(""), fill: "none", stroke: ink, "stroke-width": 2.2 }, svg);
+    for (let i = 0; i <= N; i++) el("circle", { cx: X(xi(i)), cy: Y(f(xi(i))), r: N > 16 ? 3 : 4.5, fill: card, stroke: ink, "stroke-width": 1.8 }, svg);
+    $("plotTitle").textContent = `Composite ${rule === "T" ? "trapezoidal" : "Simpson"} rule for f(x) = ${o.name}, N = ${N}`;
+
+    // ---- weights strip ----
+    const sw = $("plotW"); sw.innerHTML = "";
+    const w = weights(N, rule), HW = 86, base = 70, top = 10, wmax = 4 / 3;
+    el("line", { x1: ML, x2: W - MR, y1: base, y2: base, stroke: grid }, sw);
+    w.forEach((wi, i) => {
+      const x = X(xi(i)), hgt = (base - top) * wi / wmax, wrong = odd && (i === N - 1);
+      el("rect", { x: x - Math.min(8, 140 / (N + 1)), y: base - hgt, width: 2 * Math.min(8, 140 / (N + 1)), height: hgt, rx: 2, fill: wrong ? bad : cR, opacity: 0.85 }, sw);
+      if (N <= 16) el("text", { x, y: base + 13, "text-anchor": "middle", fill: wrong ? bad : muted, "font-size": 10.5, "font-family": MONO }, sw).textContent = rule === "T" ? (wi === 0.5 ? "1/2" : "1") : (wi === 1 / 3 ? "1/3" : wi === 4 / 3 ? "4/3" : "2/3");
+    });
+    const sumw = w.reduce((s, v) => s + v * h, 0);
+    $("warn").textContent = odd ? `N = ${N} is odd: Simpson's rule needs pairs of intervals (N = 2q). The pattern 1/3, 4/3, 2/3, …, 1/3 no longer fits: the node x${sub(N - 1)} gets the weight 2/3 instead of 4/3, and the weights add up to ${(+sumw.toFixed(4))} instead of 2.` : "";
+
+    // ---- result ----
+    const Ic = composite(f, N, rule), err = Math.abs(o.I - Ic);
+    let rows = `<tr><td>I(f)</td><td>${o.I.toFixed(8)}</td></tr><tr><td>I_c(f)</td><td>${Ic.toFixed(8)}</td></tr><tr><td>|I(f) − I_c(f)|</td><td>${sci(err)}</td></tr>`;
+    let verdict = "", vcls = "";
+    if (rule === "T") {
+      const b = bound(o, N, "T"), ok = err <= b * (1 + 1e-12);
+      rows += `<tr><td>bound (b − a)/8 · h² · max|f″|</td><td>${sci(b)}</td><td class="${ok ? "ok" : "no"}">${ok ? "✓" : "✗"}</td></tr>`;
+    } else if (!odd) {
+      const b1 = bound(o, N, "S"), b2 = bound(o, N, "S2880"), ok1 = err <= b1 * (1 + 1e-12) + 1e-15, ok2 = err <= b2 * (1 + 1e-12) + 1e-15;
+      rows += `<tr><td>bound (b − a)/180 · h⁴ · max|f⁽⁴⁾|</td><td>${sci(b1)}</td><td class="${ok1 ? "ok" : "no"}">${ok1 ? "✓" : "✗"}</td></tr>`;
+      rows += `<tr><td>as printed: (b − a)/2880 · h⁴ · max|f⁽⁴⁾|</td><td>${sci(b2)}</td><td class="${ok2 ? "ok" : "no"}">${ok2 ? "✓" : "✗"}</td></tr>`;
+      if (!ok2) { verdict = `The error ${sci(err)} is larger than the notes' bound ${sci(b2)}: with h the node spacing, the constant must be 1/180, not 1/2880.`; vcls = "no"; }
+    } else { verdict = "Not a valid composite Simpson rule: choose an even N."; vcls = "no"; }
+    $("resRows").innerHTML = rows; $("resVerdict").textContent = verdict; $("resVerdict").className = "verdict " + vcls;
+
+    // ---- convergence plot ----
+    const svgC = $("plotC"); svgC.innerHTML = "";
+    const CW = 900, CH = 340, cl = 64, cr = 16, ct = 12, cb = 34, Lx0 = Math.log10(1.5), Lx1 = Math.log10(2e5);
+    const data = convData(st.key);
+    let ymax = 0; data.forEach(d => { ymax = Math.max(ymax, d.eT, bound(o, d.N, "T")); });
+    const Ly0 = -17, Ly1 = Math.ceil(Math.log10(ymax || 1)) + 0.3;
+    const CX = N => cl + (Math.log10(N) - Lx0) / (Lx1 - Lx0) * (CW - cl - cr);
+    const CY = v => ct + (Ly1 - Math.log10(Math.max(v, 1e-17))) / (Ly1 - Ly0) * (CH - ct - cb);
+    const CYu = v => ct + (Ly1 - Math.log10(Math.max(v, 1e-40))) / (Ly1 - Ly0) * (CH - ct - cb);
+    const cp = el("clipPath", { id: "convclip" }, el("defs", {}, svgC)); el("rect", { x: cl, y: ct, width: CW - cl - cr, height: CH - ct - cb }, cp);
+    const gC = el("g", { "clip-path": "url(#convclip)" }, svgC);
+    for (let e = Ly0; e <= Math.floor(Ly1); e += 2) {
+      el("line", { x1: cl, x2: CW - cr, y1: CY(10 ** e), y2: CY(10 ** e), stroke: grid }, svgC);
+      el("text", { x: cl - 6, y: CY(10 ** e) + 4, "text-anchor": "end", fill: muted, "font-size": 11, "font-family": MONO }, svgC).textContent = "10" + (e < 0 ? "⁻" : "") + String(Math.abs(e)).split("").map(d => SUP[+d]).join("");
+    }
+    for (let e = 0; e <= 5; e++) {
+      el("line", { x1: CX(10 ** e), x2: CX(10 ** e), y1: ct, y2: CH - cb, stroke: grid, "stroke-dasharray": "2 4" }, svgC);
+      if (10 ** e >= 1.5) el("text", { x: CX(10 ** e), y: CH - cb + 16, "text-anchor": "middle", fill: muted, "font-size": 11, "font-family": MONO }, svgC).textContent = "10" + String(e).split("").map(d => SUP[+d]).join("");
+    }
+    el("text", { x: (cl + CW - cr) / 2, y: CH - 4, "text-anchor": "middle", fill: muted, "font-size": 11.5 }, svgC).textContent = "number of intervals N";
+    const eps = 2.2e-16 * Math.abs(o.I);
+    el("line", { x1: cl, x2: CW - cr, y1: CY(eps), y2: CY(eps), stroke: muted, "stroke-dasharray": "1 3", "stroke-width": 1.4 }, svgC);
+    el("text", { x: CW - cr - 4, y: CY(eps) - 5, "text-anchor": "end", fill: muted, "font-size": 11 }, svgC).textContent = "eps · |I(f)|";
+    const line = (fn, col, dash, width, Yf = CY) => el("path", { d: data.map((d, k) => (k ? "L" : "M") + CX(d.N).toFixed(1) + "," + Yf(fn(d)).toFixed(1)).join(""), fill: "none", stroke: col, "stroke-width": width, "stroke-dasharray": dash }, gC);
+    line(d => bound(o, d.N, "T"), cT, "7 5", 1.6, CYu);
+    if (o.M4 > 0) { line(d => bound(o, d.N, "S"), cS, "7 5", 1.6, CYu); line(d => bound(o, d.N, "S2880"), bad, "2 4", 2.4, CYu); }
+    line(d => d.eT, cT, "", 2.6); line(d => d.eS, cS, "", 2.6);
+    data.forEach(d => {
+      el("circle", { cx: CX(d.N), cy: CY(d.eT), r: 3.5, fill: cT }, svgC);
+      el("circle", { cx: CX(d.N), cy: CY(d.eS), r: 3.5, fill: d.eS === 0 ? card : cS, stroke: cS, "stroke-width": 1.5 }, svgC);
+    });
+    if (!odd) { const e = err; el("circle", { cx: CX(N), cy: CY(e), r: 8, fill: "none", stroke: ink, "stroke-width": 2 }, svgC); }
+    $("legC").innerHTML = `<span><i style="border-top-color:${cT}"></i>trapezoidal error</span><span><i style="border-top-color:${cS}"></i>Simpson error</span>` +
+      `<span><i class="dash" style="border-top-color:${cT}"></i>bound (b − a)/8 · h² · max|f″|</span>` +
+      (o.M4 > 0 ? `<span><i class="dash" style="border-top-color:${cS}"></i>bound (b − a)/180 · h⁴ · max|f⁽⁴⁾|</span><span><i class="dot" style="border-top-color:${bad}"></i>as printed: (b − a)/2880 · h⁴ · max|f⁽⁴⁾|</span>` : "") +
+      `<span>○ current N</span>`;
+    // observed orders from N = 8 -> 16
+    const d8 = data.find(d => d.N === 8), d16 = data.find(d => d.N === 16);
+    const pT = Math.log2(d8.eT / d16.eT), pS = d16.eS > 1e-14 ? Math.log2(d8.eS / d16.eS) : NaN;
+    const plateau = data.find((d, k) => k > 0 && data[k - 1].eS > 0 && d.eS > data[k - 1].eS / 4);
+    const viol = o.M4 > 0 && data.some(d => d.eS > bound(o, d.N, "S2880") * (1 + 1e-9) && d.eS > 1e-13);
+    $("convVerdict").textContent = `Observed order between N = 8 and 16: trapezoidal ${pT.toFixed(2)}` + (isNaN(pS) ? ", Simpson exact (error 0 or rounding only)." : `, Simpson ${pS.toFixed(2)}.`) +
+      (plateau && !isNaN(pS) ? ` From about N = ${plateau.N.toLocaleString("en-US")} on, Simpson's error no longer drops by 16 per doubling: it has reached rounding level (about ${sci(data[data.indexOf(plateau)].eS)}).` : "") +
+      (viol ? " The dotted line (the notes' constant 1/2880) lies below the actual Simpson error: it is not a valid bound." : "");
+
+    $("nOut").textContent = N; $("nodesOut").textContent = N + 1; $("hOut").textContent = +h.toFixed(4);
+    window.__comp = { key: st.key, rule, N, Ic, err, sumw, pT, pS, viol, plateau: plateau ? plateau.N : null };
+  }
+
+  $("fSel").addEventListener("change", e => { st.key = e.target.value; render(); });
+  $("nIn").addEventListener("input", e => { st.N = +e.target.value; render(); });
+  [["rT", "T"], ["rS", "S"]].forEach(([id, r]) => $(id).addEventListener("click", () => {
+    st.rule = r; ["rT", "rS"].forEach(b => { const on = b === id; $(b).classList.toggle("on", on); $(b).setAttribute("aria-pressed", on); }); render();
+  }));
+  if (window.matchMedia) { const mq = window.matchMedia("(prefers-color-scheme: dark)"); mq.addEventListener && mq.addEventListener("change", render); }
+  render();
+})();
+</script>
+
+<script>
+/* Reports the page height to the embedding page, so an iframe can size itself.
+   Message: { type: "isc-demo-height", id: <the ?id= value>, height: <pixels> } */
+(function () {
+  if (window.parent === window) return;
+  const id = new URLSearchParams(location.search).get("id") || location.pathname;
+  const send = () => {
+    try { window.parent.postMessage({ type: "isc-demo-height", id, height: document.documentElement.scrollHeight }, "*"); } catch (e) {}
+  };
+  if ("ResizeObserver" in window) new ResizeObserver(send).observe(document.body);
+  window.addEventListener("load", send);
+  send();
+})();
+</script>
+</body>
+</html>

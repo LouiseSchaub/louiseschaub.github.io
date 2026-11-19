@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Interactive demo for Exercise Sheet 03, Exercise 1: the same interpolating polynomial in the monomial and the Lagrange basis, with evaluation and cost.">
+<title>Two Bases, One Polynomial</title>
+<script>
+  /* ?embed hides the page heading and explanation, for use inside an <iframe> */
+  if (new URLSearchParams(location.search).has("embed")) document.documentElement.classList.add("embed");
+</script>
+<style>
+:root {
+  --paper: #f6f8f7;
+  --grid: rgba(40, 92, 120, 0.07);
+  --card: #ffffff;
+  --ink: #17232b;
+  --muted: #5a6a73;
+  --line: #d6dfe2;
+  --accent: #1f5f86;
+  --accent-soft: rgba(31, 95, 134, 0.13);
+  --eig: #b4570f;
+  --good: #1d7a4c;
+  --good-soft: #e2f3ea;
+  --bad: #b03a2e;
+  --bad-soft: #f8e5e2;
+  --plotgrid: #e3e9eb;
+  --c1: #1f6fb2; --c2: #d9731a; --c3: #2a9d5c; --c4: #c0392b; --c5: #7d5ba6; --c6: #8c6239; --c7: #c2497f; --c8: #5f6b73;
+  --f-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --f-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --f-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #12191d; --grid: rgba(140, 190, 215, 0.05); --card: #1a2328; --ink: #e3ebee; --muted: #93a4ad;
+    --line: #2c3a41; --accent: #7fb8dc; --accent-soft: rgba(127, 184, 220, 0.16); --eig: #f0a35e;
+    --good: #6fcf9b; --good-soft: #173527; --bad: #f0907f; --bad-soft: #3d201c; --plotgrid: #243037; color-scheme: dark;
+    --c1: #79b6e8; --c2: #f2a65a; --c3: #6fcf9b; --c4: #f0907f; --c5: #b9a0e0; --c6: #d2a679; --c7: #ec8fbd; --c8: #a9b6bd;
+  }
+}
+:root[data-theme="dark"] {
+    --c1: #79b6e8; --c2: #f2a65a; --c3: #6fcf9b; --c4: #f0907f; --c5: #b9a0e0; --c6: #d2a679; --c7: #ec8fbd; --c8: #a9b6bd;
+
+  --paper: #12191d; --grid: rgba(140, 190, 215, 0.05); --card: #1a2328; --ink: #e3ebee; --muted: #93a4ad;
+  --line: #2c3a41; --accent: #7fb8dc; --accent-soft: rgba(127, 184, 220, 0.16); --eig: #f0a35e;
+  --good: #6fcf9b; --good-soft: #173527; --bad: #f0907f; --bad-soft: #3d201c; --plotgrid: #243037; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  background-color: var(--paper);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+}
+.wrap {
+  max-width: 1180px; margin: 0 auto; padding-block: 32px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 20px;
+}
+header.page { display: grid; gap: 8px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--f-display); font-weight: 600; font-size: clamp(28px, 5vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+.lede { margin: 0; color: var(--muted); max-width: 70ch; }
+button {
+  font: inherit; font-size: 14px; cursor: pointer; border-radius: 7px; border: 1px solid var(--line);
+  background: transparent; color: var(--ink); padding: 6px 12px;
+}
+button:hover { border-color: var(--accent); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; min-width: 0; }
+.explain { display: grid; gap: 10px; }
+.explain h2 { font-family: var(--f-display); font-weight: 600; font-size: 20px; margin: 0; }
+.explain p { margin: 0; max-width: 72ch; }
+.tablewrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 7px 6px; border-top: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; border-top: 0; }
+footer { color: var(--muted); font-size: 13px; }
+.main { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 880px) { .main { grid-template-columns: minmax(0, 1fr); } }
+.plots, .side { display: grid; gap: 16px; min-width: 0; }
+.plotcard { display: grid; gap: 6px; }
+.plottitle { font-family: var(--f-display); font-weight: 600; font-size: 18px; margin: 0; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.hint { font-family: var(--f-body); font-weight: 400; font-size: 13px; color: var(--muted); }
+.card h2 { font-family: var(--f-display); font-weight: 600; font-size: 18px; margin: 0 0 10px; }
+svg { width: 100%; height: auto; display: block; touch-action: none; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { display: inline-block; width: 18px; height: 0; border-top: 2.5px solid; }
+td, th { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.datatable input { width: 6.5em; font-family: var(--f-mono); font-size: 14px; padding: 3px 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); color: var(--ink); text-align: right; }
+.check { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); margin: 8px 0; }
+.check input { accent-color: var(--accent); }
+.note { font-size: 13px; color: var(--muted); margin: 8px 0 0; max-width: 72ch; }
+.calc { font-family: var(--f-mono); font-size: 13.5px; margin: 10px 0 0; overflow-wrap: anywhere; }
+.calc b { font-family: var(--f-body); font-weight: 600; font-size: 13px; color: var(--muted); }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.costctl { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px 24px; margin: 12px 0; }
+.costctl label { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 6px; font-size: 13px; color: var(--muted); }
+.costctl label input { flex-basis: 100%; }
+.costctl output { font-family: var(--f-mono); color: var(--ink); }
+.bars { display: grid; gap: 8px; }
+.bar { display: grid; grid-template-columns: 150px minmax(0, 1fr) 110px; gap: 10px; align-items: center; font-size: 13px; }
+.bar .track { height: 16px; background: var(--paper); border-radius: 4px; overflow: hidden; }
+.bar .fill { height: 100%; border-radius: 4px; }
+.bar .num { font-family: var(--f-mono); text-align: right; font-variant-numeric: tabular-nums; }
+@media (max-width: 520px) { .bar { grid-template-columns: 1fr; } .bar .num { text-align: left; } }
+.verdict { margin: 10px 0 0; font-size: 14px; }
+.handle { cursor: ns-resize; }
+
+/* Embed mode (?embed): only the interactive part, for iframes */
+html.embed .wrap { padding-block: 4px 8px; }
+html.embed .standalone-only { display: none !important; }
+html.embed body { background-image: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="page standalone-only">
+    <span class="eyebrow">Introduction to Scientific Computing · Chapter 3 · Exercise Sheet 03, Exercise 1</span>
+    <h1>Two Bases, One Polynomial</h1>
+    <p class="lede">The monomial basis and the Lagrange basis describe the same interpolating polynomial with different coordinates. On the left the polynomial is built from the terms cₖ tᵏ, on the right from the terms fᵢ Lᵢ(t). Change the data and compare what each representation has to compute.</p>
+  </header>
+
+  <div class="main">
+    <div class="plots">
+      <section class="card plotcard" aria-label="Monomial basis">
+        <h2 class="plottitle">Monomial basis: p(t) = Σ cₖ tᵏ <span class="hint">coefficients from the Vandermonde system (3.8)</span></h2>
+        <svg id="plotM" viewBox="0 0 640 260" role="img" aria-label="The interpolant as a sum of monomial terms"></svg>
+        <div class="legend" id="legM"></div>
+      </section>
+      <section class="card plotcard" aria-label="Lagrange basis">
+        <h2 class="plottitle">Lagrange basis: p(t) = Σ fᵢ Lᵢ(t) <span class="hint">coefficients are the data values</span></h2>
+        <svg id="plotL" viewBox="0 0 640 260" role="img" aria-label="The interpolant as a sum of Lagrange terms"></svg>
+        <div class="legend" id="legL"></div>
+      </section>
+    </div>
+
+    <div class="side">
+      <section class="card">
+        <h2>Data</h2>
+        <div class="tablewrap">
+          <table class="datatable"><thead><tr><th>i</th><th>tᵢ</th><th>fᵢ</th></tr></thead><tbody id="dataRows"></tbody></table>
+        </div>
+        <label class="check" for="fourth"><input id="fourth" type="checkbox"> add the point (t₃, f₃) = (4, 9)</label>
+        <button type="button" id="resetBtn">Reset to the data of Exercise 1</button>
+      </section>
+
+      <section class="card">
+        <h2>Coordinates of p</h2>
+        <div class="tablewrap">
+          <table><thead><tr><th>k</th><th>monomial cₖ</th><th>Lagrange (= fₖ)</th></tr></thead><tbody id="coefRows"></tbody></table>
+        </div>
+        <p class="note" id="coefNote"></p>
+      </section>
+
+      <section class="card">
+        <h2>Evaluate at t* = <output id="tsOut">4</output></h2>
+        <input id="tsIn" type="range" min="0.5" max="5" step="0.05" value="4" aria-label="Evaluation point t*">
+        <p class="calc"><b>Monomial, Horner:</b><br><span id="calcM"></span></p>
+        <p class="calc"><b>Lagrange, formula (3.9):</b><br><span id="calcL"></span></p>
+      </section>
+    </div>
+  </div>
+
+  <section class="card">
+    <h2>What does each representation cost?</h2>
+    <p class="note">Rough leading-order counts: the monomial form needs one solve of the Vandermonde system (about N³/3 operations for N nodes, Theorem 2.6), then about N multiplications per point with Horner's scheme. The Lagrange form (3.9) needs no setup, but about 2N² multiplications and divisions per point.</p>
+    <div class="costctl">
+      <label for="nNodes">nodes N = <output id="nNodesOut">3</output><input id="nNodes" type="range" min="2" max="200" step="1" value="3"></label>
+      <label for="mPts">evaluation points m = <output id="mPtsOut">1</output><input id="mPts" type="range" min="0" max="6" step="0.01" value="0"></label>
+    </div>
+    <div class="bars" id="bars"></div>
+    <p class="verdict" id="costVerdict"></p>
+  </section>
+
+  <section class="card explain standalone-only">
+    <h2>What to try</h2>
+    <p><b>Drag a data point.</b> In the Lagrange view only the term of that point changes, and its coefficient is the new value. In the monomial view all coefficients cₖ change, because they come from solving a linear system.</p>
+    <p><b>Add the point (4, 9).</b> It already lies on the parabola, so the interpolant does not change: c₃ = 0. In the Lagrange view, though, every basis polynomial is new.</p>
+    <p><b>Cost.</b> With the sliders, find how many evaluation points it takes until solving the Vandermonde system once pays off. It is only about N/6, so for almost any real use the monomial form is cheaper to evaluate. Its weakness is accuracy, not speed: for many nodes the Vandermonde matrix becomes extremely ill-conditioned (Chapter 2).</p>
+  </section>
+
+  <footer class="standalone-only">Companion to Exercise Sheet 03, Exercise 1. Data: t = 1, 2, 3 with f = 6, 4, 5, so p(t) = 11 − 6.5t + 1.5t² and p(4) = 9.</footer>
+</div>
+<script>
+(function () {
+  const EX1 = { t: [1, 2, 3], f: [6, 4, 5] };
+  const FOURTH = { t: 4, f: 9 };
+  const W = 640, H = 260, ML = 44, MR = 12, MT = 12, MB = 28;
+  const T0 = 0.5, T1 = 5;
+  const NS = "http://www.w3.org/2000/svg";
+  const MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+  const SUB = "₀₁₂₃₄₅₆₇₈₉", SUP = "⁰¹²³⁴⁵⁶⁷⁸⁹";
+  const sub = n => String(n).split("").map(d => SUB[+d]).join("");
+  const $ = id => document.getElementById(id);
+  const st = { t: EX1.t.slice(), f: EX1.f.slice(), ts: 4, drag: null };
+
+  // ---------- maths ----------
+  function solve(Ain, bin) {                    // Gaussian elimination with partial pivoting
+    const n = bin.length, A = Ain.map(r => r.slice()), b = bin.slice();
+    for (let k = 0; k < n; k++) {
+      let p = k; for (let r = k + 1; r < n; r++) if (Math.abs(A[r][k]) > Math.abs(A[p][k])) p = r;
+      [A[k], A[p]] = [A[p], A[k]]; [b[k], b[p]] = [b[p], b[k]];
+      for (let r = k + 1; r < n; r++) { const l = A[r][k] / A[k][k]; for (let c = k; c < n; c++) A[r][c] -= l * A[k][c]; b[r] -= l * b[k]; }
+    }
+    const x = new Array(n).fill(0);
+    for (let k = n - 1; k >= 0; k--) { let s = b[k]; for (let c = k + 1; c < n; c++) s -= A[k][c] * x[c]; x[k] = s / A[k][k]; }
+    return x;
+  }
+  const monoCoef = (t, f) => solve(t.map(ti => t.map((_, k) => Math.pow(ti, k))), f);
+  const horner = (c, x) => c.reduceRight((acc, ck) => acc * x + ck, 0);
+  const L = (t, i, x) => t.reduce((acc, tj, j) => (j === i ? acc : acc * (x - tj) / (t[i] - tj)), 1);
+  const clean = v => (Math.abs(v) < 1e-10 ? 0 : v);
+  const fmt = v => { v = clean(v); const r = parseFloat(v.toPrecision(5)); return r.toString().replace("-", "−"); };
+
+  // ---------- drawing ----------
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  function el(tag, attrs, parent) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    parent.appendChild(e); return e;
+  }
+  const palette = () => [1, 2, 3, 4].map(i => css("--c" + i));
+  function frame(svg, ylo, yhi) {
+    const X = v => ML + (v - T0) / (T1 - T0) * (W - ML - MR);
+    const Y = v => MT + (yhi - v) / (yhi - ylo) * (H - MT - MB);
+    const grid = css("--plotgrid"), muted = css("--muted");
+    const steps = [1, 2, 2.5, 5, 10, 20, 25, 50]; const step = steps.find(s => (yhi - ylo) / s <= 7) || 100;
+    for (let v = Math.ceil(ylo / step) * step; v <= yhi + 1e-9; v += step) {
+      el("line", { x1: ML, x2: W - MR, y1: Y(v), y2: Y(v), stroke: grid, "stroke-width": Math.abs(v) < 1e-9 ? 1.6 : 1 }, svg);
+      el("text", { x: ML - 6, y: Y(v) + 4, "text-anchor": "end", fill: muted, "font-size": 11, "font-family": MONO }, svg).textContent = String(v).replace("-", "−");
+    }
+    for (let v = 1; v <= 5; v++) {
+      el("line", { x1: X(v), x2: X(v), y1: MT, y2: H - MB, stroke: grid }, svg);
+      el("text", { x: X(v), y: H - MB + 16, "text-anchor": "middle", fill: muted, "font-size": 11, "font-family": MONO }, svg).textContent = String(v);
+    }
+    const clipId = svg.id + "-clip";
+    const cp = el("clipPath", { id: clipId }, el("defs", {}, svg));
+    el("rect", { x: ML, y: MT, width: W - ML - MR, height: H - MT - MB }, cp);
+    return { X, Y, g: el("g", { "clip-path": `url(#${clipId})` }, svg) };
+  }
+  function curve(fr, fn, ylo, yhi, attrs) {
+    let d = ""; const N = 240, span = yhi - ylo;
+    for (let k = 0; k <= N; k++) {
+      const x = T0 + (T1 - T0) * k / N, v = Math.max(ylo - span, Math.min(yhi + span, fn(x)));
+      d += (k ? "L" : "M") + fr.X(x).toFixed(1) + "," + fr.Y(v).toFixed(1);
+    }
+    return el("path", Object.assign({ d, fill: "none" }, attrs), fr.g);
+  }
+
+  function render() {
+    const { t, f, ts } = st, n = t.length, C = palette();
+    const ink = css("--ink"), muted = css("--muted"), card = css("--card"), accent = css("--accent");
+    const c = monoCoef(t, f);
+    const p = x => horner(c, x);
+    const termsM = c.map((ck, k) => x => ck * Math.pow(x, k));
+    const termsL = t.map((_, i) => x => f[i] * L(t, i, x));
+
+    // common y-range for both plots
+    let lo = 0, hi = 1;
+    [p, ...termsM, ...termsL].forEach(fn => { for (let k = 0; k <= 120; k++) { const v = fn(T0 + (T1 - T0) * k / 120); if (isFinite(v)) { lo = Math.min(lo, v); hi = Math.max(hi, v); } } });
+    f.forEach(v => { lo = Math.min(lo, v); hi = Math.max(hi, v); });
+    lo = Math.max(lo, -60); hi = Math.min(hi, 60);
+    const pad = 0.08 * (hi - lo); lo -= pad; hi += pad;
+    st.range = [lo, hi];
+
+    [["plotM", termsM, k => `${fmt(c[k])}·t${k ? (k > 1 ? SUP[k] : "") : "⁰"}`], ["plotL", termsL, i => `${fmt(f[i])}·L${sub(i)}(t)`]].forEach(([id, terms, name]) => {
+      const svg = $(id); svg.innerHTML = "";
+      const fr = frame(svg, lo, hi);
+      el("line", { x1: fr.X(ts), x2: fr.X(ts), y1: MT, y2: H - MB, stroke: accent, "stroke-dasharray": "4 4", "stroke-width": 1.2 }, fr.g);
+      terms.forEach((fn, k) => curve(fr, fn, lo, hi, { stroke: C[k % 4], "stroke-width": 1.6, opacity: 0.9 }));
+      curve(fr, p, lo, hi, { stroke: ink, "stroke-width": 2.8 });
+      el("circle", { cx: fr.X(ts), cy: fr.Y(p(ts)), r: 4, fill: accent }, fr.g);
+      t.forEach((ti, i) => {
+        const h = el("circle", { cx: fr.X(ti), cy: fr.Y(f[i]), r: 7, fill: card, stroke: ink, "stroke-width": 2, class: "handle" }, svg);
+        h.addEventListener("pointerdown", e => { e.preventDefault(); st.drag = { i, svg }; svg.setPointerCapture && svg.setPointerCapture(e.pointerId); });
+      });
+      const leg = $(id === "plotM" ? "legM" : "legL");
+      leg.innerHTML = `<span><i style="border-top-color:${ink}"></i>p(t)</span>` + terms.map((_, k) => `<span><i style="border-top-color:${C[k % 4]}"></i>${name(k)}</span>`).join("");
+    });
+
+    // data table
+    $("dataRows").innerHTML = t.map((ti, i) => `<tr><td>${i}</td><td>${ti}</td><td><input type="number" step="0.5" id="f${i}" value="${+f[i].toFixed(3)}" aria-label="f${i}"></td></tr>`).join("");
+    t.forEach((_, i) => $("f" + i).addEventListener("change", e => { const v = parseFloat(e.target.value); if (isFinite(v)) { st.f[i] = v; render(); } }));
+
+    // coordinates
+    $("coefRows").innerHTML = t.map((_, k) => `<tr><td>${k}</td><td>${fmt(c[k])}</td><td>${fmt(f[k])}</td></tr>`).join("");
+    $("coefNote").textContent = n === 4 && Math.abs(clean(c[3])) === 0
+      ? "With (4, 9) the cubic coefficient c₃ is 0: the point already lies on the parabola, and the interpolant in 𝒫₃ is unique."
+      : `Monomial: solve a ${n} × ${n} linear system. Lagrange: the coordinates are the data values, no computation.`;
+
+    // evaluation, step by step
+    $("tsOut").textContent = fmt(ts);
+    let hornerTxt = fmt(c[n - 1]);
+    for (let k = n - 2; k >= 0; k--) hornerTxt = `(${hornerTxt})·${fmt(ts)} ${c[k] < 0 ? "−" : "+"} ${fmt(Math.abs(c[k]))}`;
+    $("calcM").textContent = `p(${fmt(ts)}) = ${hornerTxt} = ${fmt(p(ts))}   [${n - 1} multiplications]`;
+    const Lv = t.map((_, i) => L(t, i, ts));
+    $("calcL").textContent = t.map((_, i) => `L${sub(i)}(${fmt(ts)}) = ${fmt(Lv[i])}`).join(", ") + `;  p(${fmt(ts)}) = ` +
+      t.map((_, i) => `${fmt(f[i])}·(${fmt(Lv[i])})`).join(" + ") + ` = ${fmt(t.reduce((s, _, i) => s + f[i] * Lv[i], 0))}`;
+
+    renderCost();
+    window.__basis = { c: c.map(clean), pAtTs: p(ts), pL: t.reduce((s, _, i) => s + f[i] * Lv[i], 0), n };
+  }
+
+  function renderCost() {
+    const N = +$("nNodes").value, m = Math.round(Math.pow(10, +$("mPts").value));
+    $("nNodesOut").textContent = N; $("mPtsOut").textContent = m.toLocaleString("en-US");
+    const mono = N ** 3 / 3 + m * N, lag = m * 2 * N * N;
+    const max = Math.max(mono, lag);
+    const row = (label, v, col) => `<div class="bar"><span>${label}</span><div class="track"><div class="fill" style="width:${(100 * Math.log10(1 + v) / Math.log10(1 + max)).toFixed(1)}%;background:${col}"></div></div><span class="num">${Math.round(v).toLocaleString("en-US")}</span></div>`;
+    $("bars").innerHTML = row("monomial: N³/3 + m·N", mono, css("--c1")) + row("Lagrange (3.9): m·2N²", lag, css("--c2"));
+    const be = (N ** 3 / 3) / (2 * N * N - N);
+    $("costVerdict").textContent = (mono < lag ? "The monomial form is cheaper here. " : mono > lag ? "The Lagrange form is cheaper here. " : "Both cost the same here. ") +
+      `Break-even at about m ≈ N/6 = ${Math.max(be, 0).toFixed(1)} evaluation points. (Bar length on a log scale.)`;
+  }
+
+  // ---------- interaction ----------
+  function onMove(e) {
+    if (!st.drag) return;
+    const { i, svg } = st.drag;
+    const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+    const P = pt.matrixTransform(svg.getScreenCTM().inverse());
+    const [lo, hi] = st.dragRange;
+    st.f[i] = Math.round((hi - (P.y - MT) / (H - MT - MB) * (hi - lo)) * 4) / 4;   // snap to quarters
+    render();
+  }
+  ["plotM", "plotL"].forEach(id => {
+    const svg = $(id);
+    svg.addEventListener("pointerdown", () => { st.dragRange = st.range.slice(); }, true);
+    svg.addEventListener("pointermove", onMove);
+    svg.addEventListener("pointerup", () => { st.drag = null; render(); });
+    svg.addEventListener("pointercancel", () => { st.drag = null; });
+  });
+  $("fourth").addEventListener("change", e => {
+    if (e.target.checked) { st.t = st.t.slice(0, 3).concat(FOURTH.t); st.f = st.f.slice(0, 3).concat(FOURTH.f); }
+    else { st.t = st.t.slice(0, 3); st.f = st.f.slice(0, 3); }
+    render();
+  });
+  $("resetBtn").addEventListener("click", () => { st.t = EX1.t.slice(); st.f = EX1.f.slice(); $("fourth").checked = false; st.ts = 4; $("tsIn").value = 4; render(); });
+  $("tsIn").addEventListener("input", e => { st.ts = +e.target.value; render(); });
+  $("nNodes").addEventListener("input", renderCost);
+  $("mPts").addEventListener("input", renderCost);
+  if (window.matchMedia) { const mq = window.matchMedia("(prefers-color-scheme: dark)"); mq.addEventListener && mq.addEventListener("change", render); }
+  render();
+})();
+</script>
+
+<script>
+/* Reports the page height to the embedding page, so an iframe can size itself.
+   Message: { type: "isc-demo-height", id: <the ?id= value>, height: <pixels> } */
+(function () {
+  if (window.parent === window) return;
+  const id = new URLSearchParams(location.search).get("id") || location.pathname;
+  const send = () => {
+    try { window.parent.postMessage({ type: "isc-demo-height", id, height: document.documentElement.scrollHeight }, "*"); } catch (e) {}
+  };
+  if ("ResizeObserver" in window) new ResizeObserver(send).observe(document.body);
+  window.addEventListener("load", send);
+  send();
+})();
+</script>
+</body>
+</html>

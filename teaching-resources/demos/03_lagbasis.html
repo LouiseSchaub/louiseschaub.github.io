@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Interactive demo for Chapter 3: why the Lagrange polynomials form a basis of P_n, with draggable nodes, both proof steps and the matrix view.">
+<title>Why Lagrange Is a Basis</title>
+<script>
+  /* ?embed hides the page heading and explanation, for use inside an <iframe> */
+  if (new URLSearchParams(location.search).has("embed")) document.documentElement.classList.add("embed");
+</script>
+<style>
+:root {
+  --paper: #f6f8f7;
+  --grid: rgba(40, 92, 120, 0.07);
+  --card: #ffffff;
+  --ink: #17232b;
+  --muted: #5a6a73;
+  --line: #d6dfe2;
+  --accent: #1f5f86;
+  --accent-soft: rgba(31, 95, 134, 0.13);
+  --eig: #b4570f;
+  --good: #1d7a4c;
+  --good-soft: #e2f3ea;
+  --bad: #b03a2e;
+  --bad-soft: #f8e5e2;
+  --plotgrid: #e3e9eb;
+  --c1: #1f6fb2; --c2: #d9731a; --c3: #2a9d5c; --c4: #c0392b; --c5: #7d5ba6; --c6: #8c6239; --c7: #c2497f; --c8: #5f6b73;
+  --f-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --f-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --f-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #12191d; --grid: rgba(140, 190, 215, 0.05); --card: #1a2328; --ink: #e3ebee; --muted: #93a4ad;
+    --line: #2c3a41; --accent: #7fb8dc; --accent-soft: rgba(127, 184, 220, 0.16); --eig: #f0a35e;
+    --good: #6fcf9b; --good-soft: #173527; --bad: #f0907f; --bad-soft: #3d201c; --plotgrid: #243037; color-scheme: dark;
+    --c1: #79b6e8; --c2: #f2a65a; --c3: #6fcf9b; --c4: #f0907f; --c5: #b9a0e0; --c6: #d2a679; --c7: #ec8fbd; --c8: #a9b6bd;
+  }
+}
+:root[data-theme="dark"] {
+    --c1: #79b6e8; --c2: #f2a65a; --c3: #6fcf9b; --c4: #f0907f; --c5: #b9a0e0; --c6: #d2a679; --c7: #ec8fbd; --c8: #a9b6bd;
+
+  --paper: #12191d; --grid: rgba(140, 190, 215, 0.05); --card: #1a2328; --ink: #e3ebee; --muted: #93a4ad;
+  --line: #2c3a41; --accent: #7fb8dc; --accent-soft: rgba(127, 184, 220, 0.16); --eig: #f0a35e;
+  --good: #6fcf9b; --good-soft: #173527; --bad: #f0907f; --bad-soft: #3d201c; --plotgrid: #243037; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  background-color: var(--paper);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+}
+.wrap {
+  max-width: 1180px; margin: 0 auto; padding-block: 32px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 20px;
+}
+header.page { display: grid; gap: 8px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--f-display); font-weight: 600; font-size: clamp(28px, 5vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+.lede { margin: 0; color: var(--muted); max-width: 70ch; }
+button {
+  font: inherit; font-size: 14px; cursor: pointer; border-radius: 7px; border: 1px solid var(--line);
+  background: transparent; color: var(--ink); padding: 6px 12px;
+}
+button:hover { border-color: var(--accent); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; min-width: 0; }
+.explain { display: grid; gap: 10px; }
+.explain h2 { font-family: var(--f-display); font-weight: 600; font-size: 20px; margin: 0; }
+.explain p { margin: 0; max-width: 72ch; }
+.tablewrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 7px 6px; border-top: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; border-top: 0; }
+footer { color: var(--muted); font-size: 13px; }
+.main { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 880px) { .main { grid-template-columns: minmax(0, 1fr); } }
+.plots, .side { display: grid; gap: 16px; min-width: 0; }
+.plotcard { display: grid; gap: 6px; }
+.plottitle { font-family: var(--f-display); font-weight: 600; font-size: 18px; margin: 0 0 6px; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.subtitle { font-family: var(--f-body); font-weight: 600; font-size: 13px; color: var(--muted); margin: 8px 0 0; }
+.hint { font-family: var(--f-body); font-weight: 400; font-size: 13px; color: var(--muted); }
+.card h2 { font-family: var(--f-display); font-weight: 600; font-size: 18px; margin: 0 0 10px; }
+svg { width: 100%; height: auto; display: block; touch-action: none; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { display: inline-block; width: 18px; height: 0; border-top: 2.5px solid; }
+.legend i.dash { border-top-style: dashed; }
+td, th { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+table.small td, table.small th { padding: 3px 8px; }
+.note { font-size: 13px; color: var(--muted); margin: 8px 0 0; max-width: 72ch; }
+.note:empty, .verdict:empty { display: none; }
+#warn { color: var(--bad); font-weight: 600; }
+.verdict { margin: 8px 0 0; font-size: 14px; max-width: 76ch; }
+.verdict.ok { color: var(--good); }
+.verdict.no { color: var(--bad); }
+.rangerow { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 6px; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+.rangerow output { font-family: var(--f-mono); color: var(--ink); }
+.rangerow input { flex-basis: 100%; width: 100%; accent-color: var(--accent); }
+.cslider { display: grid; grid-template-columns: 3.2em minmax(0, 1fr) 3.6em; gap: 8px; align-items: center; font-family: var(--f-mono); font-size: 13px; margin: 4px 0; }
+.cslider input { width: 100%; }
+.cslider output { text-align: right; }
+select { font: inherit; font-size: 14px; width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 7px; background: var(--card); color: var(--ink); }
+.seg { display: inline-flex; }
+.seg button { font-family: var(--f-body); font-size: 13px; padding: 2px 10px; border-radius: 0; }
+.seg button:first-child { border-radius: 6px 0 0 6px; }
+.seg button:last-child { border-radius: 0 6px 6px 0; border-left: 0; }
+.side button { margin-top: 8px; }
+.matrixwrap { overflow-x: auto; }
+.matrix { width: auto; border-collapse: separate; border-spacing: 3px; }
+.matrix th { font-size: 12px; color: var(--muted); font-weight: 500; padding: 2px 6px; }
+.matrix td { text-align: right; padding: 6px 10px; border-radius: 5px; min-width: 4.6em; }
+.matrix td.one { background: var(--good-soft); color: var(--good); font-weight: 700; }
+.matrix td.zero { color: var(--muted); }
+.matrix td.big { background: var(--bad-soft); color: var(--bad); }
+.handle { cursor: ew-resize; }
+
+/* Embed mode (?embed): only the interactive part, for iframes */
+html.embed .wrap { padding-block: 4px 8px; }
+html.embed .standalone-only { display: none !important; }
+html.embed body { background-image: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="page standalone-only">
+    <span class="eyebrow">Introduction to Scientific Computing · Chapter 3 · Lagrange basis (3.9), Theorem 3.5</span>
+    <h1>Why the Lagrange Polynomials Are a Basis</h1>
+    <p class="lede">For pairwise distinct nodes x₀, …, xₙ every Lᵢ is 1 at its own node and 0 at all others. That single property makes L₀, …, Lₙ linearly independent, lets them represent every polynomial in 𝒫ₙ, and makes the coordinates of a polynomial its values at the nodes. Drag the nodes and try both halves of the proof.</p>
+  </header>
+
+  <div class="main">
+    <div class="plots">
+      <section class="card plotcard" aria-label="Basis polynomials">
+        <h2 class="plottitle">The basis polynomials L₀, …, Lₙ <span class="hint">drag the nodes ▲ left or right</span></h2>
+        <svg id="plotB" viewBox="0 0 640 290" role="img" aria-label="The Lagrange basis polynomials with their values at the nodes"></svg>
+        <div class="legend" id="legB"></div>
+        <p class="note" id="warn" role="status"></p>
+      </section>
+
+      <section class="card plotcard" aria-label="Proof steps">
+        <h2 class="plottitle"><span id="stepTitle">Step 2: linear independence</span>
+          <span class="seg" role="group" aria-label="Proof step">
+            <button type="button" id="modeInd" class="on" aria-pressed="true">independence</button><button type="button" id="modeSpan" aria-pressed="false">spanning</button>
+          </span>
+        </h2>
+        <svg id="plotC" viewBox="0 0 640 260" role="img" aria-label="A linear combination of the basis polynomials"></svg>
+        <div class="legend" id="legC"></div>
+        <div id="resWrap" hidden>
+          <h3 class="subtitle">Residual r(x) = q(x) − Σ q(xᵢ) Lᵢ(x)</h3>
+          <svg id="plotR" viewBox="0 0 640 150" role="img" aria-label="The residual with its roots at the nodes"></svg>
+        </div>
+        <p class="verdict" id="verdict"></p>
+      </section>
+    </div>
+
+    <div class="side">
+      <section class="card">
+        <h2>Setup</h2>
+        <label class="rangerow" for="nIn">degree n = <output id="nOut">2</output>, so n + 1 = <output id="nNodesOut">3</output> nodes
+          <input id="nIn" type="range" min="1" max="5" step="1" value="2"></label>
+        <button type="button" id="resetBtn">Equidistant nodes in [1, 3]</button>
+        <div class="tablewrap"><table class="small"><thead><tr><th>i</th><th>xᵢ</th></tr></thead><tbody id="nodeRows"></tbody></table></div>
+      </section>
+
+      <section class="card" id="indCard">
+        <h2>Coefficients cᵢ of Σ cᵢ Lᵢ</h2>
+        <div id="cSliders"></div>
+        <button type="button" id="zeroBtn">Set all cᵢ = 0</button>
+      </section>
+
+      <section class="card" id="spanCard" hidden>
+        <h2>Polynomial q to represent</h2>
+        <select id="qSel" aria-label="Polynomial q">
+          <option value="lin">2x − 1 (degree 1)</option>
+          <option value="ex1" selected>11 − 6.5x + 1.5x² (degree 2, Exercise 1)</option>
+          <option value="cub">x³ − 6x² + 11x − 3 (degree 3)</option>
+          <option value="qua">(x − 2)⁴ − 2(x − 2)² + 1 (degree 4)</option>
+        </select>
+        <p class="note">Its coordinates in the Lagrange basis are just its values at the nodes:</p>
+        <div class="tablewrap"><table class="small"><thead><tr><th>i</th><th>coordinate q(xᵢ)</th></tr></thead><tbody id="coordRows"></tbody></table></div>
+      </section>
+    </div>
+  </div>
+
+  <section class="card">
+    <h2 class="plottitle">The matrix of the interpolation conditions
+      <span class="seg" role="group" aria-label="Basis">
+        <button type="button" id="matL" class="on" aria-pressed="true">Lagrange</button><button type="button" id="matV" aria-pressed="false">monomial</button>
+      </span>
+    </h2>
+    <p class="note" id="matIntro"></p>
+    <div class="matrixwrap"><table class="matrix" id="matTable"></table></div>
+    <p class="verdict" id="matVerdict"></p>
+  </section>
+
+  <section class="card explain standalone-only">
+    <h2>What to try</h2>
+    <p><b>Read the dots in the top plot.</b> Each Lᵢ has a filled dot at height 1 at its own node and hollow dots at height 0 at all others. Written as a vector of node values, Lᵢ is the unit vector eᵢ. This does not change when you drag the nodes.</p>
+    <p><b>Independence.</b> Move the sliders: the combination Σ cᵢ Lᵢ passes through (xₖ, cₖ) at every node, because evaluating at xₖ switches off every term except cₖ Lₖ. The combination can only be the zero function if every dot sits at 0, i.e. all cᵢ = 0.</p>
+    <p><b>Spanning.</b> Switch to "spanning" and choose q. With cᵢ = q(xᵢ) the residual r vanishes at all n + 1 nodes. If q has degree at most n, so does r, and a nonzero polynomial of degree ≤ n has at most n roots: r ≡ 0. Choose the cubic with n = 2: r still vanishes at the three nodes but is not zero, because q is not in 𝒫₂. Raise n to 3 and it works.</p>
+    <p><b>Let two nodes collide.</b> Drag one node onto its neighbour. The denominators xᵢ − xⱼ become small, the two basis polynomials grow huge, and the Vandermonde matrix becomes nearly singular. At xᵢ = xⱼ both descriptions break down: the nodes must be pairwise distinct.</p>
+  </section>
+
+  <footer class="standalone-only">Companion to Chapter 3 of the lecture notes (Lagrange basis (3.9), Theorem 3.5) and Exercise Sheet 03, Exercise 1.</footer>
+</div>
+<script>
+(function () {
+  const X0 = 0.5, X1 = 3.5, XMIN = 0.6, XMAX = 3.4, GAP = 0.03;
+  const W = 640, ML = 44, MR = 12, MT = 12;
+  const NS = "http://www.w3.org/2000/svg";
+  const MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+  const SUB = "₀₁₂₃₄₅₆₇₈₉", SUP = "⁰¹²³⁴⁵⁶⁷⁸⁹";
+  const sub = n => String(n).split("").map(d => SUB[+d]).join("");
+  const sup = n => String(n).split("").map(d => SUP[+d]).join("");
+  const $ = id => document.getElementById(id);
+  const DEFAULT_C = [6, 4, 5, 3, 7, 2];
+  const Q = {
+    lin: { deg: 1, f: x => 2 * x - 1 },
+    ex1: { deg: 2, f: x => 11 - 6.5 * x + 1.5 * x * x },
+    cub: { deg: 3, f: x => x * x * x - 6 * x * x + 11 * x - 3 },
+    qua: { deg: 4, f: x => Math.pow(x - 2, 4) - 2 * Math.pow(x - 2, 2) + 1 },
+  };
+  const equi = n => Array.from({ length: n + 1 }, (_, i) => 1 + 2 * i / n);
+  const st = { n: 2, x: equi(2), c: DEFAULT_C.slice(0, 3), mode: "ind", mat: "L", drag: null };
+
+  // ---------- maths ----------
+  const L = (i, t) => { let r = 1; for (let j = 0; j < st.x.length; j++) if (j !== i) r *= (t - st.x[j]) / (st.x[i] - st.x[j]); return r; };
+  const comb = (c, t) => c.reduce((s, ci, i) => s + ci * L(i, t), 0);
+  function symEig(A) {                              // Jacobi eigenvalues of a small symmetric matrix
+    const n = A.length, a = A.map(r => r.slice());
+    for (let sweep = 0; sweep < 60; sweep++) {
+      let off = 0; for (let p = 0; p < n; p++) for (let q = p + 1; q < n; q++) off += a[p][q] * a[p][q];
+      if (off < 1e-30) break;
+      for (let p = 0; p < n; p++) for (let q = p + 1; q < n; q++) {
+        if (Math.abs(a[p][q]) < 1e-300) continue;
+        const th = (a[q][q] - a[p][p]) / (2 * a[p][q]);
+        const t = Math.sign(th || 1) / (Math.abs(th) + Math.sqrt(th * th + 1)), c = 1 / Math.sqrt(t * t + 1), s = t * c;
+        for (let k = 0; k < n; k++) { const akp = a[k][p], akq = a[k][q]; a[k][p] = c * akp - s * akq; a[k][q] = s * akp + c * akq; }
+        for (let k = 0; k < n; k++) { const apk = a[p][k], aqk = a[q][k]; a[p][k] = c * apk - s * aqk; a[q][k] = s * apk + c * aqk; }
+      }
+    }
+    return a.map((r, i) => r[i]);
+  }
+  function condV() {
+    const n = st.x.length, V = st.x.map(xi => Array.from({ length: n }, (_, j) => Math.pow(xi, j)));
+    const VtV = Array.from({ length: n }, (_, i) => Array.from({ length: n }, (_, j) => V.reduce((s, r) => s + r[i] * r[j], 0)));
+    const ev = symEig(VtV).map(Math.abs);
+    return { V, cond: Math.sqrt(Math.max(...ev) / Math.max(Math.min(...ev), 1e-300)) };
+  }
+  const fmt = (v, p = 4) => { if (Math.abs(v) < 5e-13) v = 0; const r = parseFloat(v.toPrecision(p)); return r.toString().replace("-", "−"); };
+  const fmtSmall = v => { const e = Math.floor(Math.log10(v)); return (v / Math.pow(10, e)).toFixed(0) + " · 10" + (e < 0 ? "⁻" : "") + sup(Math.abs(e)); };
+  const fmtE = v => { const e = Math.floor(Math.log10(v)); return v < 1e4 ? fmt(v, 3) : (v / Math.pow(10, e)).toFixed(1) + " · 10" + sup(e); };
+
+  // ---------- drawing ----------
+  const css = k => getComputedStyle(document.documentElement).getPropertyValue(k).trim();
+  function el(tag, attrs, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; }
+  function frame(svg, H, MB, ylo, yhi) {
+    const X = v => ML + (v - X0) / (X1 - X0) * (W - ML - MR);
+    const Y = v => MT + (yhi - v) / (yhi - ylo) * (H - MT - MB);
+    const grid = css("--plotgrid"), muted = css("--muted");
+    const span = yhi - ylo, steps = [0.5, 1, 2, 2.5, 5, 10, 20, 50, 100];
+    const step = span < 1e-6 ? span / 4 : (steps.find(s => span / s <= 6) || Math.pow(10, Math.ceil(Math.log10(span / 5))));
+    for (let v = Math.ceil(ylo / step) * step; v <= yhi + 1e-12; v += step) {
+      el("line", { x1: ML, x2: W - MR, y1: Y(v), y2: Y(v), stroke: grid, "stroke-width": Math.abs(v) < step * 1e-6 ? 1.8 : 1 }, svg);
+      el("text", { x: ML - 6, y: Y(v) + 4, "text-anchor": "end", fill: muted, "font-size": 11, "font-family": MONO }, svg).textContent = fmt(v, 3);
+    }
+    const id = svg.id + "-clip"; const cp = el("clipPath", { id }, el("defs", {}, svg));
+    el("rect", { x: ML, y: MT, width: W - ML - MR, height: H - MT - MB }, cp);
+    return { X, Y, g: el("g", { "clip-path": `url(#${id})` }, svg) };
+  }
+  const path = (fr, fn, N = 400) => Array.from({ length: N + 1 }, (_, k) => X0 + (X1 - X0) * k / N)
+    .map((x, k) => { const v = Math.max(-1e4, Math.min(1e4, fn(x))); return (k ? "L" : "M") + fr.X(x).toFixed(1) + "," + fr.Y(v).toFixed(1); }).join("");
+  function nodeLines(fr, svg, H, MB, labels) {
+    const grid = css("--plotgrid"), muted = css("--muted");
+    st.x.forEach((xi, i) => {
+      el("line", { x1: fr.X(xi), x2: fr.X(xi), y1: MT, y2: H - MB, stroke: grid, "stroke-dasharray": "2 4" }, svg);
+      if (labels) el("text", { x: fr.X(xi), y: H - MB + 30, "text-anchor": "middle", fill: muted, "font-size": 11, "font-family": MONO }, svg).textContent = "x" + sub(i);
+    });
+  }
+  function range(fns, lo0, hi0, cap) {
+    let lo = lo0, hi = hi0;
+    for (const f of fns) for (let k = 0; k <= 200; k++) { const v = f(X0 + (X1 - X0) * k / 200); if (isFinite(v)) { lo = Math.min(lo, v); hi = Math.max(hi, v); } }
+    lo = Math.max(lo, -cap); hi = Math.min(hi, cap); const pad = 0.08 * (hi - lo || 1);
+    return [lo - pad, hi + pad];
+  }
+
+  function render() {
+    const n = st.n, N = n + 1, C = [1, 2, 3, 4, 5, 6].map(i => css("--c" + i));
+    const ink = css("--ink"), muted = css("--muted"), card = css("--card");
+
+    // ---- basis plot ----
+    const svgB = $("plotB"); svgB.innerHTML = "";
+    const HB = 290, MBB = 44;
+    const frB = frame(svgB, HB, MBB, -1.5, 2.2);
+    nodeLines(frB, svgB, HB, MBB, true);
+    for (let i = 0; i < N; i++) el("path", { d: path(frB, t => L(i, t)), fill: "none", stroke: C[i], "stroke-width": 2.4 }, frB.g);
+    st.x.forEach((xk, k) => {
+      el("circle", { cx: frB.X(xk), cy: frB.Y(0), r: 5, fill: card, stroke: muted, "stroke-width": 1.8 }, frB.g);
+      el("circle", { cx: frB.X(xk), cy: frB.Y(1), r: 6, fill: C[k], stroke: card, "stroke-width": 1.5 }, frB.g);
+    });
+    st.x.forEach((xi, i) => {
+      const cx = frB.X(xi), cy = HB - MBB + 12;
+      const h = el("path", { d: `M${cx},${cy - 9} L${cx - 9},${cy + 7} L${cx + 9},${cy + 7} Z`, fill: C[i], stroke: card, "stroke-width": 1.5, class: "handle" }, svgB);
+      h.addEventListener("pointerdown", e => { e.preventDefault(); st.drag = i; svgB.setPointerCapture && svgB.setPointerCapture(e.pointerId); });
+    });
+    $("legB").innerHTML = Array.from({ length: N }, (_, i) => `<span><i style="border-top-color:${C[i]}"></i>L${sub(i)}</span>`).join("") +
+      `<span>● value 1 at its own node</span><span>○ value 0 at every other node</span>`;
+    let minGap = Infinity, pair = [0, 1];
+    for (let i = 0; i + 1 < N; i++) { const g = st.x[i + 1] - st.x[i]; if (g < minGap) { minGap = g; pair = [i, i + 1]; } }
+    let maxL = 0; for (let i = 0; i < N; i++) for (let k = 0; k <= 200; k++) { const t = st.x[0] + (st.x[N - 1] - st.x[0]) * k / 200; maxL = Math.max(maxL, Math.abs(L(i, t))); }
+    $("warn").textContent = minGap < 0.15
+      ? `x${sub(pair[0])} and x${sub(pair[1])} are only ${fmt(minGap, 2)} apart: the denominators x${sub(pair[0])} − x${sub(pair[1])} are tiny, and the basis polynomials reach |Lᵢ| ≈ ${fmt(maxL, 3)} between the nodes. At x${sub(pair[0])} = x${sub(pair[1])} they are not defined.`
+      : "";
+
+    // ---- proof step plot ----
+    const svgC = $("plotC"); svgC.innerHTML = "";
+    const HC = 260, MBC = 26;
+    let legC = "", verdict = "", vcls = "";
+    if (st.mode === "ind") {
+      const c = st.c;
+      const [lo, hi] = range([t => comb(c, t)], Math.min(0, ...c), Math.max(1, ...c), 40);
+      const fr = frame(svgC, HC, MBC, lo, hi);
+      nodeLines(fr, svgC, HC, MBC, false);
+      for (let i = 0; i < N; i++) el("path", { d: path(fr, t => c[i] * L(i, t)), fill: "none", stroke: C[i], "stroke-width": 1.4, "stroke-dasharray": "5 4" }, fr.g);
+      el("path", { d: path(fr, t => comb(c, t)), fill: "none", stroke: ink, "stroke-width": 2.8 }, fr.g);
+      st.x.forEach((xk, k) => {
+        el("circle", { cx: fr.X(xk), cy: fr.Y(c[k]), r: 6, fill: C[k], stroke: card, "stroke-width": 1.5 }, fr.g);
+        const right = xk > (X0 + X1) / 2, above = k % 2 === 0;
+        el("text", { x: fr.X(xk) + (right ? -9 : 9), y: fr.Y(c[k]) + (above ? -9 : 18), "text-anchor": right ? "end" : "start", fill: C[k], stroke: card, "stroke-width": 4, "paint-order": "stroke", "font-size": 12, "font-family": MONO, "font-weight": 600 }, fr.g).textContent = `c${sub(k)} = ${fmt(c[k])}`;
+      });
+      legC = `<span><i style="border-top-color:${ink}"></i>Σ cᵢ Lᵢ</span>` + Array.from({ length: N }, (_, i) => `<span><i class="dash" style="border-top-color:${C[i]}"></i>c${sub(i)}·L${sub(i)}</span>`).join("");
+      const allZero = c.every(v => v === 0);
+      verdict = allZero
+        ? "All cᵢ = 0: the combination is the zero function. This is the only way to get it."
+        : `At every node the combination equals its coefficient: Σ cᵢ Lᵢ(xₖ) = cₖ. Since c ≠ 0, at least one dot is off the axis, so the combination is not the zero function.`;
+      vcls = allZero ? "ok" : "";
+      $("resWrap").hidden = true;
+    } else {
+      const q = Q[$("qSel").value], y = st.x.map(q.f);
+      const I = t => comb(y, t);
+      const [lo, hi] = range([q.f, I], Math.min(...y), Math.max(...y), 40);
+      const fr = frame(svgC, HC, MBC, lo, hi);
+      nodeLines(fr, svgC, HC, MBC, false);
+      for (let i = 0; i < N; i++) el("path", { d: path(fr, t => y[i] * L(i, t)), fill: "none", stroke: C[i], "stroke-width": 1.2, "stroke-dasharray": "5 4", opacity: 0.75 }, fr.g);
+      el("path", { d: path(fr, q.f), fill: "none", stroke: muted, "stroke-width": 6, opacity: 0.35 }, fr.g);
+      el("path", { d: path(fr, I), fill: "none", stroke: ink, "stroke-width": 2.4 }, fr.g);
+      st.x.forEach((xk, k) => el("circle", { cx: fr.X(xk), cy: fr.Y(y[k]), r: 6, fill: C[k], stroke: card, "stroke-width": 1.5 }, fr.g));
+      legC = `<span><i style="border-top-color:${muted};border-top-width:6px;opacity:.5"></i>q</span><span><i style="border-top-color:${ink}"></i>Σ q(xᵢ) Lᵢ</span>` +
+        Array.from({ length: N }, (_, i) => `<span><i class="dash" style="border-top-color:${C[i]}"></i>q(x${sub(i)})·L${sub(i)}</span>`).join("");
+      // residual
+      $("resWrap").hidden = false;
+      const r = t => q.f(t) - I(t);
+      let rmax = 0; for (let k = 0; k <= 400; k++) rmax = Math.max(rmax, Math.abs(r(X0 + (X1 - X0) * k / 400)));
+      const zero = rmax < 1e-9, svgR = $("plotR"); svgR.innerHTML = "";
+      const R = zero ? 1 : Math.min(rmax * 1.1, 40);
+      const frR = frame(svgR, 150, 22, -R, R);
+      nodeLines(frR, svgR, 150, 22, false);
+      el("path", { d: path(frR, r), fill: "none", stroke: zero ? css("--good") : css("--bad"), "stroke-width": 2.4 }, frR.g);
+      st.x.forEach((xk, k) => el("circle", { cx: frR.X(xk), cy: frR.Y(0), r: 5, fill: C[k], stroke: card, "stroke-width": 1.5 }, frR.g));
+      if (q.deg <= n) {
+        verdict = `deg q = ${q.deg} ≤ n = ${n}, so r ∈ 𝒫${sub(n)}. r vanishes at all ${N} nodes, more roots than its degree allows unless r ≡ 0. Indeed max |r| ≈ ${rmax === 0 ? "0" : fmtSmall(rmax)}, which is rounding error. So q = Σ q(xᵢ) Lᵢ.`;
+        vcls = "ok";
+      } else {
+        verdict = `deg q = ${q.deg} > n = ${n}: q is not in 𝒫${sub(n)}. r still vanishes at all ${N} nodes, but a polynomial of degree ${q.deg} may have ${N} roots, so r ≠ 0 (max |r| = ${fmt(rmax, 3)}). The Lᵢ span 𝒫${sub(n)}, nothing more. Raise n to ${q.deg}.`;
+        vcls = "no";
+      }
+      $("coordRows").innerHTML = y.map((v, i) => `<tr><td style="color:${C[i]}">${i}</td><td>q(x${sub(i)}) = ${fmt(v)}</td></tr>`).join("");
+      window.__lagb_r = rmax;
+    }
+    $("legC").innerHTML = legC;
+    $("verdict").textContent = verdict; $("verdict").className = "verdict " + vcls;
+    $("stepTitle").textContent = st.mode === "ind" ? "Step 2: linear independence" : "Step 3: spanning, with the coordinates";
+    $("indCard").hidden = st.mode !== "ind"; $("spanCard").hidden = st.mode === "ind";
+
+    // ---- matrix ----
+    const { V, cond } = condV();
+    let html = "<thead><tr><th></th>";
+    for (let j = 0; j < N; j++) html += `<th>${st.mat === "L" ? "L" + sub(j) : "x" + sup(j)}</th>`;
+    html += "</tr></thead><tbody>";
+    const valueMatrix = [];
+    for (let i = 0; i < N; i++) {
+      html += `<tr><th>x${sub(i)} = ${fmt(st.x[i], 3)}</th>`; valueMatrix.push([]);
+      for (let j = 0; j < N; j++) {
+        if (st.mat === "L") { const v = L(j, st.x[i]); valueMatrix[i].push(v); html += `<td class="${i === j ? "one" : "zero"}">${fmt(v)}</td>`; }
+        else html += `<td>${fmt(V[i][j])}</td>`;
+      }
+      html += "</tr>";
+    }
+    $("matTable").innerHTML = html + "</tbody>";
+    if (st.mat === "L") {
+      $("matIntro").textContent = "Row i holds the values of the basis polynomials at the node xᵢ, column j the node values of Lⱼ. The interpolation conditions p(xᵢ) = yᵢ for p = Σ cⱼ Lⱼ read (Lⱼ(xᵢ)) c = y.";
+      $("matVerdict").textContent = "The matrix is the identity I for any distinct nodes, so c = y without any computation, and Σ cⱼ Lⱼ = 0 forces c = 0.";
+      $("matVerdict").className = "verdict ok";
+    } else {
+      $("matIntro").textContent = "The same conditions in the monomial basis give the Vandermonde system (3.8): (xᵢʲ) a = y. Its columns are the node values of 1, x, …, xⁿ.";
+      $("matVerdict").textContent = `cond₂(V) = ${fmtE(cond)}. V is regular for distinct nodes, so 1, x, …, xⁿ are a basis as well, but the coordinates need a solve` +
+        (minGap < 0.15 ? `, and with two nodes this close V is nearly singular (two almost equal rows).` : `. Its inverse converts between the bases: column j of V⁻¹ holds the monomial coefficients of Lⱼ.`);
+      $("matVerdict").className = "verdict " + (cond > 1e6 ? "no" : "");
+    }
+
+    // ---- side ----
+    $("nOut").textContent = n; $("nNodesOut").textContent = N; $("nIn").value = n;
+    $("nodeRows").innerHTML = st.x.map((v, i) => `<tr><td style="color:${C[i]}">${i}</td><td>${fmt(v, 3)}</td></tr>`).join("");
+    window.__lagb = { n, x: st.x.slice(), c: st.c.slice(), mode: st.mode, valueMatrix, cond, minGap, maxL };
+  }
+
+  function buildSliders() {
+    const C = [1, 2, 3, 4, 5, 6].map(i => css("--c" + i));
+    $("cSliders").innerHTML = st.c.map((v, i) =>
+      `<label class="cslider" style="color:${C[i]}"><span>c${sub(i)}</span><input type="range" min="-8" max="8" step="0.25" value="${v}" data-i="${i}" aria-label="c${i}" style="accent-color:${C[i]}"><output id="cOut${i}">${fmt(v)}</output></label>`).join("");
+    $("cSliders").querySelectorAll("input").forEach(inp => inp.addEventListener("input", e => {
+      const i = +e.target.dataset.i; st.c[i] = +e.target.value; $("cOut" + i).textContent = fmt(st.c[i]); render();
+    }));
+  }
+
+  // ---------- interaction ----------
+  const svgB = $("plotB");
+  svgB.addEventListener("pointermove", e => {
+    if (st.drag === null) return;
+    const pt = svgB.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+    const P = pt.matrixTransform(svgB.getScreenCTM().inverse()), i = st.drag;
+    let v = X0 + (P.x - ML) / (W - ML - MR) * (X1 - X0);
+    const lo = i > 0 ? st.x[i - 1] + GAP : XMIN, hi = i < st.n ? st.x[i + 1] - GAP : XMAX;
+    st.x[i] = Math.round(Math.min(hi, Math.max(lo, v)) * 100) / 100;
+    render();
+  });
+  svgB.addEventListener("pointerup", () => { st.drag = null; });
+  svgB.addEventListener("pointercancel", () => { st.drag = null; });
+  $("nIn").addEventListener("input", e => {
+    st.n = +e.target.value; st.x = equi(st.n);
+    st.c = Array.from({ length: st.n + 1 }, (_, i) => (i < st.c.length ? st.c[i] : DEFAULT_C[i]));
+    buildSliders(); render();
+  });
+  $("resetBtn").addEventListener("click", () => { st.x = equi(st.n); render(); });
+  $("zeroBtn").addEventListener("click", () => { st.c = st.c.map(() => 0); buildSliders(); render(); });
+  $("qSel").addEventListener("change", render);
+  const seg = (ids, key, vals) => ids.forEach((id, k) => $(id).addEventListener("click", () => {
+    st[key] = vals[k];
+    ids.forEach((b, m) => { $(b).classList.toggle("on", m === k); $(b).setAttribute("aria-pressed", m === k); });
+    render();
+  }));
+  seg(["modeInd", "modeSpan"], "mode", ["ind", "span"]);
+  seg(["matL", "matV"], "mat", ["L", "V"]);
+  if (window.matchMedia) { const mq = window.matchMedia("(prefers-color-scheme: dark)"); mq.addEventListener && mq.addEventListener("change", () => { buildSliders(); render(); }); }
+  buildSliders(); render();
+})();
+</script>
+
+<script>
+/* Reports the page height to the embedding page, so an iframe can size itself.
+   Message: { type: "isc-demo-height", id: <the ?id= value>, height: <pixels> } */
+(function () {
+  if (window.parent === window) return;
+  const id = new URLSearchParams(location.search).get("id") || location.pathname;
+  const send = () => {
+    try { window.parent.postMessage({ type: "isc-demo-height", id, height: document.documentElement.scrollHeight }, "*"); } catch (e) {}
+  };
+  if ("ResizeObserver" in window) new ResizeObserver(send).observe(document.body);
+  window.addEventListener("load", send);
+  send();
+})();
+</script>
+</body>
+</html>

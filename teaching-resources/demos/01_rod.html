@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Interactive demo of the series solution of the heat equation from Exercise Sheet 01: a rod cooling with its ends in ice water.">
+<title>The Rod in Ice Water</title>
+<script>
+  /* ?embed hides the page heading and explanation, for use inside an <iframe> */
+  if (new URLSearchParams(location.search).has("embed")) document.documentElement.classList.add("embed");
+</script>
+<style>
+:root {
+  --paper: #f6f8f7;
+  --grid: rgba(40, 92, 120, 0.07);
+  --card: #ffffff;
+  --ink: #17232b;
+  --muted: #5a6a73;
+  --line: #d6dfe2;
+  --accent: #1f5f86;
+  --accent-soft: rgba(31, 95, 134, 0.13);
+  --eig: #b4570f;
+  --good: #1d7a4c;
+  --good-soft: #e2f3ea;
+  --bad: #b03a2e;
+  --bad-soft: #f8e5e2;
+  --plotgrid: #e3e9eb;
+  --f-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --f-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --f-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #12191d; --grid: rgba(140, 190, 215, 0.05); --card: #1a2328; --ink: #e3ebee; --muted: #93a4ad;
+    --line: #2c3a41; --accent: #7fb8dc; --accent-soft: rgba(127, 184, 220, 0.16); --eig: #f0a35e;
+    --good: #6fcf9b; --good-soft: #173527; --bad: #f0907f; --bad-soft: #3d201c; --plotgrid: #243037; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #12191d; --grid: rgba(140, 190, 215, 0.05); --card: #1a2328; --ink: #e3ebee; --muted: #93a4ad;
+  --line: #2c3a41; --accent: #7fb8dc; --accent-soft: rgba(127, 184, 220, 0.16); --eig: #f0a35e;
+  --good: #6fcf9b; --good-soft: #173527; --bad: #f0907f; --bad-soft: #3d201c; --plotgrid: #243037; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  background-color: var(--paper);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+}
+.wrap {
+  max-width: 900px; margin: 0 auto; padding-block: 32px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 20px;
+}
+header.page { display: grid; gap: 8px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--f-display); font-weight: 600; font-size: clamp(28px, 5vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+.lede { margin: 0; color: var(--muted); max-width: 70ch; }
+button {
+  font: inherit; font-size: 14px; cursor: pointer; border-radius: 7px; border: 1px solid var(--line);
+  background: transparent; color: var(--ink); padding: 6px 12px;
+}
+button:hover { border-color: var(--accent); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; min-width: 0; }
+.explain { display: grid; gap: 10px; }
+.explain h2 { font-family: var(--f-display); font-weight: 600; font-size: 20px; margin: 0; }
+.explain p { margin: 0; max-width: 72ch; }
+.tablewrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 7px 6px; border-top: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; border-top: 0; }
+footer { color: var(--muted); font-size: 13px; }
+/* Rod demo */
+#rod { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px 20px; display: grid; gap: 14px; }
+#rod h2 { font-family: var(--f-display); font-weight: 600; font-size: 26px; margin: 0; line-height: 1.2; }
+#rod .ref { font-size: 14px; color: var(--muted); margin: 0; max-width: 66ch; }
+#rod .story { margin: 0; font-size: 15px; max-width: 66ch; }
+#rodCanvas { width: 100%; height: 340px; display: block; }
+.rodctl { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px 20px; align-items: end; }
+.rodctl label { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 6px; font-size: 13px; color: var(--muted); }
+.rodctl label input { flex-basis: 100%; }
+.rodctl output { font-family: var(--f-mono); color: var(--ink); font-variant-numeric: tabular-nums; }
+.rodctl input[type=range] { width: 100%; accent-color: var(--accent); }
+.rodbtns { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; }
+.readout { display: flex; flex-wrap: wrap; gap: 8px 22px; font-family: var(--f-mono); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.readout b { color: var(--ink); font-weight: 500; }
+@media (max-width: 520px) { #rod { padding: 14px; } #rodCanvas { height: 280px; } }
+
+/* Embed mode (?embed): only the interactive part, for iframes */
+html.embed .wrap { padding-block: 4px 8px; }
+html.embed .standalone-only { display: none !important; }
+html.embed body { background-image: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="page standalone-only">
+    <span class="eyebrow">Introduction to Scientific Computing · Chapter 1 · Exercise Sheet 01, Exercise 2</span>
+    <h1>The Rod in Ice Water</h1>
+    <p class="lede">One way to read Exercise 2: a thin metal rod of length l has the same temperature u₀ everywhere. At t = 0 both ends are dipped into ice water and held at temperature 0. How does the rod cool down? This is an interpretation; the sheet only states the equations.</p>
+  </header>
+
+  <section id="rod" aria-label="Rod demo">
+    <p class="ref">The curve is the series solution u(t, x) = Σ Aₙ sin(nπx/l) e^(−k(nπ/l)² t) from the sheet, plotted as u/u₀ over x/l against the dimensionless time τ = kt/l². The bar below the plot is the rod, coloured by temperature.</p>
+    <canvas id="rodCanvas" role="img" aria-label="Temperature along the rod at the selected time"></canvas>
+    <div class="readout" aria-live="polite">
+      <span>centre u(τ, l/2)/u₀ = <b id="roCentre">–</b></span>
+      <span>mean = <b id="roMean">–</b></span>
+      <span>non-zero terms used = <b id="roTerms">–</b></span>
+    </div>
+    <div class="rodctl">
+      <label for="tauIn">Time τ = kt/l²: <output id="tauOut">0.000</output>
+        <input id="tauIn" type="range" min="0" max="0.3" step="0.001" value="0"></label>
+      <label for="nIn">Series terms up to n = <output id="nOut">49</output>
+        <input id="nIn" type="range" min="1" max="199" step="2" value="49"></label>
+      <div class="rodbtns">
+        <button type="button" id="playBtn">▶ Play</button>
+        <button type="button" id="bcBtn" aria-pressed="false">Boundary: Dirichlet</button>
+        <button type="button" id="modesBtn" aria-pressed="false">Show terms n = 1, 3, 5</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card explain standalone-only">
+    <h2>What to look for</h2>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Setting</th><th>What it shows</th></tr></thead>
+        <tbody>
+          <tr><td>τ = 0, terms up to n = 9, then 49</td><td>At t = 0 the sum has to give u₀ inside and 0 at the ends. With few terms it wiggles and overshoots near the ends.</td></tr>
+          <tr><td>Play</td><td>The profile turns into a single sine arch almost at once.</td></tr>
+          <tr><td>Show terms n = 1, 3, 5, at τ ≈ 0.01 and 0.05</td><td>Terms with larger n die out much faster, by the factor e^(−n²π²τ). At τ = 0.05, 9 terms already give the same curve as 199.</td></tr>
+          <tr><td>The readout</td><td>The centre stays close to u₀ at first, then cools. Since τ = kt/l², a rod twice as long needs four times as long to reach the same state.</td></tr>
+          <tr><td>Boundary: Neumann</td><td>Nothing happens: the rod stays at u₀. With insulated ends no heat leaves, and the rod is already uniform.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="standalone-only">Companion to Exercise Sheet 01, Exercise 2 (heat equation on (0, l) with homogeneous Dirichlet boundary conditions).</footer>
+</div>
+<script>
+// ---------- Rod demo ----------
+(function () {
+  const cv = document.getElementById("rodCanvas");
+  const ctx = cv.getContext("2d");
+  const tauIn = document.getElementById("tauIn"), nIn = document.getElementById("nIn");
+  const st = { tau: 0, nmax: 49, neumann: false, modes: false, playing: false };
+
+  function u(x, tau, nmax) {
+    if (st.neumann) return 1;          // cosine series of a constant: only n = 0, which does not decay
+    let s = 0;
+    for (let n = 1; n <= nmax; n += 2) s += 4 / (n * Math.PI) * Math.sin(n * Math.PI * x) * Math.exp(-Math.pow(n * Math.PI, 2) * tau);
+    return s;
+  }
+  function mode(n, x, tau) { return 4 / (n * Math.PI) * Math.sin(n * Math.PI * x) * Math.exp(-Math.pow(n * Math.PI, 2) * tau); }
+  function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+  function heat(v) { // 0 = ice blue, 1 = hot orange
+    v = Math.max(0, Math.min(1, v));
+    const a = [70, 130, 200], b = [235, 90, 40];
+    return `rgb(${a.map((c, i) => Math.round(c + (b[i] - c) * v)).join(",")})`;
+  }
+
+  function draw() {
+    const dpr = window.devicePixelRatio || 1;
+    const W = cv.clientWidth, H = cv.clientHeight;
+    if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    const ink = css("--ink"), muted = css("--muted"), line = css("--line"), accent = css("--accent");
+    const L = 64, R = 14, T = 12, rodH = 26, B = 34 + rodH + 14;
+    const pw = W - L - R, ph = H - T - B;
+    const umin = -0.2, umax = 1.25;
+    const X = x => L + x * pw, Y = v => T + (umax - v) / (umax - umin) * ph;
+
+    ctx.font = "12px " + css("--f-mono"); ctx.fillStyle = muted; ctx.strokeStyle = line; ctx.lineWidth = 1;
+    ctx.textAlign = "right"; ctx.textBaseline = "middle";
+    [0, 0.25, 0.5, 0.75, 1].forEach(v => { ctx.beginPath(); ctx.moveTo(L, Y(v)); ctx.lineTo(L + pw, Y(v)); ctx.stroke(); ctx.fillText(v.toFixed(2), L - 6, Y(v)); });
+    ctx.textAlign = "center"; ctx.textBaseline = "top";
+    [0, 0.25, 0.5, 0.75, 1].forEach(x => ctx.fillText(x === 0 ? "0" : x === 1 ? "l" : x + "l", X(x), T + ph + 6));
+    ctx.save(); ctx.translate(12, T + ph / 2); ctx.rotate(-Math.PI / 2); ctx.textBaseline = "middle"; ctx.fillText("u / u₀", 0, 0); ctx.restore();
+
+    // initial value u0 for reference
+    ctx.setLineDash([5, 4]); ctx.strokeStyle = muted; ctx.beginPath(); ctx.moveTo(X(0), Y(1)); ctx.lineTo(X(1), Y(1)); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = muted; ctx.textAlign = "right"; ctx.textBaseline = "bottom"; ctx.fillText("initial u₀", X(1), Y(1) - 3);
+
+    const M = Math.max(200, Math.round(pw));
+    if (st.modes && !st.neumann) {
+      ctx.lineWidth = 1.2; ctx.globalAlpha = 0.6;
+      [1, 3, 5].forEach((n, k) => {
+        ctx.strokeStyle = muted; ctx.setLineDash(k === 0 ? [] : k === 1 ? [6, 3] : [2, 3]);
+        ctx.beginPath();
+        for (let i = 0; i <= M; i++) { const x = i / M, v = mode(n, x, st.tau); i ? ctx.lineTo(X(x), Y(v)) : ctx.moveTo(X(x), Y(v)); }
+        ctx.stroke();
+      });
+      ctx.setLineDash([]); ctx.globalAlpha = 1;
+    }
+    const vals = [];
+    ctx.strokeStyle = accent; ctx.lineWidth = 2.5; ctx.beginPath();
+    for (let i = 0; i <= M; i++) { const x = i / M, v = u(x, st.tau, st.nmax); vals.push(v); i ? ctx.lineTo(X(x), Y(v)) : ctx.moveTo(X(x), Y(v)); }
+    ctx.stroke();
+
+    // the rod itself, coloured by temperature
+    const ry = H - rodH - 8;
+    for (let i = 0; i < M; i++) { ctx.fillStyle = heat(vals[i]); ctx.fillRect(X(i / M), ry, pw / M + 1, rodH); }
+    ctx.strokeStyle = ink; ctx.lineWidth = 1; ctx.strokeRect(X(0), ry, pw, rodH);
+    if (!st.neumann) {
+      ctx.fillStyle = heat(0); ctx.fillRect(X(0) - 8, ry - 4, 8, rodH + 8); ctx.fillRect(X(1), ry - 4, 8, rodH + 8);
+    }
+
+    document.getElementById("roCentre").textContent = u(0.5, st.tau, st.nmax).toFixed(3);
+    let mean = 0; for (let i = 0; i < vals.length - 1; i++) mean += (vals[i] + vals[i + 1]) / 2 / M;
+    document.getElementById("roMean").textContent = mean.toFixed(3);
+    document.getElementById("roTerms").textContent = st.neumann ? "1 (n = 0)" : String((st.nmax + 1) / 2);
+  }
+
+  tauIn.addEventListener("input", () => { st.tau = +tauIn.value; document.getElementById("tauOut").textContent = st.tau.toFixed(3); draw(); });
+  nIn.addEventListener("input", () => { st.nmax = +nIn.value; document.getElementById("nOut").textContent = st.nmax; draw(); });
+  const bcBtn = document.getElementById("bcBtn");
+  bcBtn.addEventListener("click", () => {
+    st.neumann = !st.neumann;
+    bcBtn.textContent = "Boundary: " + (st.neumann ? "Neumann (insulated)" : "Dirichlet");
+    bcBtn.classList.toggle("on", st.neumann); bcBtn.setAttribute("aria-pressed", st.neumann); draw();
+  });
+  const modesBtn = document.getElementById("modesBtn");
+  modesBtn.addEventListener("click", () => {
+    st.modes = !st.modes; modesBtn.classList.toggle("on", st.modes); modesBtn.setAttribute("aria-pressed", st.modes); draw();
+  });
+  const playBtn = document.getElementById("playBtn");
+  let last = 0;
+  function step(ts) {
+    if (!st.playing) return;
+    const dt = last ? (ts - last) / 1000 : 0; last = ts;
+    st.tau = Math.min(0.3, st.tau + dt * 0.05);
+    tauIn.value = st.tau; document.getElementById("tauOut").textContent = st.tau.toFixed(3); draw();
+    if (st.tau >= 0.3) { stop(); return; }
+    requestAnimationFrame(step);
+  }
+  function stop() { st.playing = false; playBtn.textContent = "▶ Play"; }
+  playBtn.addEventListener("click", () => {
+    if (st.playing) { stop(); return; }
+    if (st.tau >= 0.3) st.tau = 0;
+    st.playing = true; last = 0; playBtn.textContent = "❚❚ Pause"; requestAnimationFrame(step);
+  });
+  window.addEventListener("resize", draw);
+  if (window.matchMedia) {
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    mq.addEventListener && mq.addEventListener("change", draw);
+  }
+  new MutationObserver(draw).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
+  draw();
+})();
+</script>
+
+<script>
+/* Reports the page height to the embedding page, so an iframe can size itself.
+   Message: { type: "isc-demo-height", id: <the ?id= value>, height: <pixels> } */
+(function () {
+  if (window.parent === window) return;
+  const id = new URLSearchParams(location.search).get("id") || location.pathname;
+  const send = () => {
+    try { window.parent.postMessage({ type: "isc-demo-height", id, height: Math.ceil(document.body.getBoundingClientRect().height) }, "*"); } catch (e) {}
+  };
+  if ("ResizeObserver" in window) new ResizeObserver(send).observe(document.body);
+  window.addEventListener("load", send);
+  send();
+})();
+</script>
+</body>
+</html>

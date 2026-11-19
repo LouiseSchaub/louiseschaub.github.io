@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Interactive demonstrations for Introduction to Scientific Computing.">
+  <title>Interactive Scientific Computing | Louise Schaub</title>
+  <style>
+    :root { --bg:#f6f8f9;--surface:#fff;--ink:#17232b;--muted:#5a6a73;--line:#d6dfe2;--accent:#1f4f78;--soft:#eef5fb;--gold:#d9bf3b;--shadow:0 8px 24px rgba(20,44,62,.06);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; }
+    * {box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);line-height:1.55} a{color:var(--accent)}
+    .wrap{max-width:1230px;padding:40px 22px 72px;margin:auto} .topline{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+    .eyebrow{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:700} .home{font-size:.9rem;text-decoration:none}
+    header{border-bottom:1px solid var(--line);padding-bottom:25px;margin-bottom:30px} h1{font-family:Georgia,serif;font-size:clamp(2rem,4vw,3rem);font-weight:500;line-height:1.2;margin:12px 0} .lede{color:var(--muted);max-width:740px;margin:0}
+    .section{margin-top:28px} h2{font-family:Georgia,serif;font-weight:500;margin:0 0 13px;font-size:1.4rem} .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:14px}
+    .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:19px 20px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:9px;text-align:left;cursor:pointer;color:var(--ink);font:inherit;transition:border-color .15s,transform .15s}
+    .card:hover,.card:focus-visible{border-color:var(--accent);transform:translateY(-2px);outline:none} .card[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 3px 0 var(--gold),var(--shadow)}
+    .card strong{font-size:1.04rem}.card .meta{font-size:.79rem;color:var(--muted)} .card .summary{color:var(--muted);font-size:.91rem;flex:1}.card .action{color:var(--accent);font-weight:650;font-size:.9rem;margin-top:4px}
+    #viewer{margin-top:36px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:var(--shadow);scroll-margin-top:18px} #viewer[hidden]{display:none}
+    .viewerhead{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px}.viewerhead h2{margin:0}.tools{display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:.9rem}.tools button{font:inherit;cursor:pointer;border:1px solid var(--line);border-radius:7px;background:var(--soft);color:var(--accent);padding:7px 11px}
+    iframe{width:100%;height:760px;border:0;border-radius:9px;background:#fff;display:block} .footer{margin-top:44px;border-top:1px solid var(--line);padding-top:16px;color:var(--muted);font-size:.83rem}
+    @media(max-width:700px){.wrap{padding:24px 14px 44px}#viewer{padding:10px}.viewerhead{padding:6px}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="topline"><span class="eyebrow">Teaching resources</span><a class="home" href="/">← Louise Schaub's website</a></div>
+  <h1>Interactive Scientific Computing</h1>
+  <p class="lede">Interactive visualizations accompanying <em>Introduction to Scientific Computing</em>. Choose a topic to explore the mathematics and experiment with the parameters.</p>
+</header>
+<main>
+  <section class="section" aria-labelledby="ch1"><h2 id="ch1">Chapter 1 · Differential equations</h2><div class="grid">
+    <button class="card" data-demo="rod" aria-pressed="false"><span class="meta">Exercise Sheet 01 · Exercise 2</span><strong>The Rod in Ice Water</strong><span class="summary">Explore the series solution of the heat equation, time evolution, and boundary conditions.</span><span class="action">Explore →</span></button>
+  </div></section>
+  <section class="section" aria-labelledby="ch2"><h2 id="ch2">Chapter 2 · Linear algebra</h2><div class="grid">
+    <button class="card" data-demo="ellipse" aria-pressed="false"><span class="meta">Lemma 2.3</span><strong>Condition Number Ellipse</strong><span class="summary">See how a matrix transforms the unit circle and how singular values determine conditioning.</span><span class="action">Explore →</span></button>
+  </div></section>
+  <section class="section" aria-labelledby="ch3"><h2 id="ch3">Chapter 3 · Polynomial interpolation</h2><div class="grid">
+    <button class="card" data-demo="lagrange" aria-pressed="false"><span class="meta">Section 3.1</span><strong>The Lagrange Basis</strong><span class="summary">Move interpolation nodes and inspect basis polynomials and the resulting interpolant.</span><span class="action">Explore →</span></button>
+    <button class="card" data-demo="lagbasis" aria-pressed="false"><span class="meta">Chapter 3 · Basis properties</span><strong>Why Lagrange Is a Basis</strong><span class="summary">Explore the basis property using draggable nodes, proof steps, and a matrix view.</span><span class="action">Explore →</span></button>
+    <button class="card" data-demo="basis" aria-pressed="false"><span class="meta">Exercise Sheet 03 · Exercise 1</span><strong>Two Bases, One Polynomial</strong><span class="summary">Compare monomial and Lagrange representations of the same polynomial.</span><span class="action">Explore →</span></button>
+    <button class="card" data-demo="spline" aria-pressed="false"><span class="meta">Exercise Sheet 03 · Exercise 2</span><strong>Building a Natural Cubic Spline</strong><span class="summary">Investigate spline pieces, coefficients, and continuity conditions.</span><span class="action">Explore →</span></button>
+  </div></section>
+  <section class="section" aria-labelledby="ch4"><h2 id="ch4">Chapter 4 · Numerical quadrature</h2><div class="grid">
+    <button class="card" data-demo="quadrature" aria-pressed="false"><span class="meta">Exercise Sheet 04 · Exercise 1</span><strong>From Interpolation to Quadrature</strong><span class="summary">Examine how polynomial interpolation leads to trapezoidal and Simpson’s rules.</span><span class="action">Explore →</span></button>
+    <button class="card" data-demo="composite" aria-pressed="false"><span class="meta">Exercise Sheet 04 · Exercises 2–4</span><strong>Composite Rules and Their Convergence</strong><span class="summary">Compare composite quadrature formulas, weights, and convergence behavior.</span><span class="action">Explore →</span></button>
+  </div></section>
+  <section id="viewer" hidden aria-label="Selected interactive demonstration">
+    <div class="viewerhead"><h2 id="viewer-title">Demonstration</h2><div class="tools"><a id="full-link" href="#" target="_blank" rel="noopener">Open full page ↗</a><button id="close-demo" type="button">Close demonstration</button></div></div>
+    <iframe id="demo-frame" title="Interactive demonstration" allow="fullscreen"></iframe>
+  </section>
+</main>
+<footer class="footer">Interactive teaching resources · Louise Schaub</footer>
+</div>
+<script>
+(() => {
+  const demos = {
+    rod: { file: '01_rod.html', title: 'The Rod in Ice Water' },
+    ellipse: { file: '02_condition-ellipse.html', title: 'Condition Number Ellipse' },
+    lagrange: { file: '03_lagrange.html', title: 'The Lagrange Basis' },
+    lagbasis: { file: '03_lagbasis.html', title: 'Why Lagrange Is a Basis' },
+    basis: { file: '03_basis.html', title: 'Two Bases, One Polynomial' },
+    spline: { file: '03_spline.html', title: 'Building a Natural Cubic Spline' },
+    quadrature: { file: '04_quadrature.html', title: 'From Interpolation to Quadrature' },
+    composite: { file: '04_composite.html', title: 'Composite Rules and Their Convergence' }
+  };
+  const viewer = document.getElementById('viewer');
+  const frame = document.getElementById('demo-frame');
+  const title = document.getElementById('viewer-title');
+  const full = document.getElementById('full-link');
+  const cards = document.querySelectorAll('[data-demo]');
+  let selected = null;
+
+  function updateUrl(id) {
+    const url = new URL(location.href);
+    if (id) url.searchParams.set('demo', id);
+    else url.searchParams.delete('demo');
+    history.pushState({}, '', url);
+  }
+
+  function show(id, scroll = true, changeUrl = true) {
+    if (!Object.hasOwn(demos, id)) return;
+    const demo = demos[id];
+    selected = id;
+    cards.forEach(card => card.setAttribute('aria-pressed', String(card.dataset.demo === id)));
+    title.textContent = demo.title;
+    frame.title = demo.title;
+    full.href = 'demos/' + demo.file;
+    viewer.hidden = false;
+    frame.style.height = '760px';
+    const url = 'demos/' + demo.file + '?embed';
+    if (frame.getAttribute('src') !== url) frame.src = url;
+    if (changeUrl) updateUrl(id);
+    if (scroll) requestAnimationFrame(() => viewer.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  }
+
+  function close(changeUrl = true) {
+    selected = null;
+    viewer.hidden = true;
+    frame.removeAttribute('src');
+    cards.forEach(card => card.setAttribute('aria-pressed', 'false'));
+    if (changeUrl) updateUrl(null);
+  }
+
+  cards.forEach(card => card.addEventListener('click', () => show(card.dataset.demo)));
+  document.getElementById('close-demo').addEventListener('click', () => { close(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+  window.addEventListener('message', event => {
+    if (event.origin !== location.origin || event.source !== frame.contentWindow) return;
+    if (!event.data || event.data.type !== 'isc-demo-height') return;
+    const h = Number(event.data.height);
+    if (Number.isFinite(h) && h > 100 && h < 20000) frame.style.height = Math.ceil(h + 8) + 'px';
+  });
+  function readUrl() {
+    const id = new URL(location.href).searchParams.get('demo');
+    if (id && Object.hasOwn(demos, id)) show(id, false, false);
+    else close(false);
+  }
+  window.addEventListener('popstate', readUrl);
+  readUrl();
+})();
+</script>
+</body>
+</html>

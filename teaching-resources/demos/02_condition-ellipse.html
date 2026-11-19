@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Interactive 2 x 2 demo: the unit circle maps to an ellipse whose half-axes are the singular values; compared with the eigenvalues and Lemma 2.3.">
+<title>Condition Number Ellipse</title>
+<script>
+  /* ?embed hides the page heading and explanation, for use inside an <iframe> */
+  if (new URLSearchParams(location.search).has("embed")) document.documentElement.classList.add("embed");
+</script>
+<style>
+/* Layout: engineering-paper page; plot on the left, matrix controls and readouts on the right, stacking on phones. */
+:root {
+  --paper: #f6f8f7;
+  --grid: rgba(40, 92, 120, 0.07);
+  --card: #ffffff;
+  --ink: #17232b;
+  --muted: #5a6a73;
+  --line: #d6dfe2;
+  --accent: #1f5f86;
+  --accent-soft: rgba(31, 95, 134, 0.13);
+  --eig: #b4570f;
+  --good: #1d7a4c;
+  --good-soft: #e2f3ea;
+  --bad: #b03a2e;
+  --bad-soft: #f8e5e2;
+  --plotgrid: #e3e9eb;
+  --f-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --f-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --f-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #12191d; --grid: rgba(140, 190, 215, 0.05); --card: #1a2328; --ink: #e3ebee; --muted: #93a4ad;
+    --line: #2c3a41; --accent: #7fb8dc; --accent-soft: rgba(127, 184, 220, 0.16); --eig: #f0a35e;
+    --good: #6fcf9b; --good-soft: #173527; --bad: #f0907f; --bad-soft: #3d201c; --plotgrid: #243037; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #12191d; --grid: rgba(140, 190, 215, 0.05); --card: #1a2328; --ink: #e3ebee; --muted: #93a4ad;
+  --line: #2c3a41; --accent: #7fb8dc; --accent-soft: rgba(127, 184, 220, 0.16); --eig: #f0a35e;
+  --good: #6fcf9b; --good-soft: #173527; --bad: #f0907f; --bad-soft: #3d201c; --plotgrid: #243037; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  background-color: var(--paper);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+}
+.wrap {
+  max-width: 1160px; margin: 0 auto; padding-block: 32px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 20px;
+}
+header { display: grid; gap: 8px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--f-display); font-weight: 600; font-size: clamp(28px, 5vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+.lede { margin: 0; color: var(--muted); max-width: 72ch; }
+.main { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 880px) { .main { grid-template-columns: minmax(0, 1fr); } }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; min-width: 0; }
+.plotcard { display: grid; gap: 10px; }
+svg#plot { width: 100%; height: auto; aspect-ratio: 1 / 1; max-width: 100%; display: block; touch-action: none; cursor: crosshair; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 18px; height: 0; border-top: 2.5px solid; display: inline-block; }
+.sw.circle { border-top: 1.5px dashed var(--muted); }
+.sw.ell { border-top-color: var(--accent); }
+.sw.eig { border-top-color: var(--eig); }
+.sw.x { border-top-color: var(--ink); }
+.hint { font-size: 13px; color: var(--muted); margin: 0; }
+.side { display: grid; gap: 16px; min-width: 0; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 20px; margin: 0 0 10px; }
+.presets { display: flex; flex-wrap: wrap; gap: 6px; }
+button {
+  font: inherit; font-size: 13px; cursor: pointer; border-radius: 7px; border: 1px solid var(--line);
+  background: transparent; color: var(--ink); padding: 5px 10px;
+}
+button:hover { border-color: var(--accent); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.matrixrow { display: flex; flex-wrap: wrap; gap: 16px 22px; align-items: center; margin-top: 14px; }
+.matrix { display: inline-grid; grid-template-columns: repeat(2, 92px); gap: 8px 10px; padding: 8px 14px; position: relative; }
+.matrix::before, .matrix::after { content: ""; position: absolute; top: 0; bottom: 0; width: 9px; border: 2px solid var(--ink); }
+.matrix::before { left: 0; border-right: 0; }
+.matrix::after { right: 0; border-left: 0; }
+.matrix input { width: 100%; font-family: var(--f-mono); font-size: 15px; padding: 5px 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); color: var(--ink); text-align: right; font-variant-numeric: tabular-nums; }
+.matlabel { font-family: var(--f-display); font-size: 22px; font-style: italic; }
+.sliders { display: grid; gap: 4px; margin-top: 12px; }
+.sliders label { display: grid; grid-template-columns: 34px minmax(0, 1fr); align-items: center; gap: 8px; font-family: var(--f-mono); font-size: 13px; color: var(--muted); }
+.sliders input[type=range] { width: 100%; accent-color: var(--accent); }
+.check { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); margin-top: 10px; }
+.check input { accent-color: var(--accent); }
+.chip { display: inline-block; font-size: 12px; font-weight: 600; letter-spacing: 0.02em; padding: 3px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+.verdict { margin: 10px 0 0; font-size: 14px; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+td { padding: 7px 4px; border-top: 1px solid var(--line); vertical-align: top; }
+tr:first-child td { border-top: 0; }
+td.k { color: var(--muted); }
+td.v { font-family: var(--f-mono); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.m { width: 26px; text-align: center; font-weight: 600; }
+td.m.ok { color: var(--good); }
+td.m.no { color: var(--bad); }
+tr.key td { font-weight: 600; }
+tr.key td.v { color: var(--accent); }
+.tablewrap { overflow-x: auto; }
+.explain { display: grid; gap: 8px; }
+.explain p { margin: 0; max-width: 72ch; }
+.explain b { font-weight: 600; }
+footer { color: var(--muted); font-size: 13px; }
+
+/* Embed mode (?embed): only the interactive part, for iframes */
+html.embed .wrap { padding-block: 4px 8px; }
+html.embed .standalone-only { display: none !important; }
+html.embed body { background-image: none; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="standalone-only">
+    <span class="eyebrow">Introduction to Scientific Computing · Chapter 2 · Lemma 2.3</span>
+    <h1>Condition Number Ellipse</h1>
+    <p class="lede">A 2 × 2 matrix A maps the unit circle onto an ellipse. Its longest half-axis is σ₁ = ‖A‖₂ and its shortest is σ₂ = 1/‖A⁻¹‖₂, so cond₂(A) = σ₁/σ₂ says how flat the ellipse is. Change the matrix and compare the half-axes with the eigenvalues.</p>
+  </header>
+
+  <div class="main">
+    <section class="card plotcard" aria-label="Plot">
+      <svg id="plot" viewBox="-300 -300 600 600" role="img" aria-label="Unit circle, its image ellipse under A, half-axes and eigen-directions"></svg>
+      <div class="legend">
+        <span><i class="sw circle"></i>unit circle ‖x‖₂ = 1</span>
+        <span><i class="sw ell"></i>image A·x, half-axes σ₁, σ₂</span>
+        <span><i class="sw eig"></i>eigen-directions, A v = λ v</span>
+        <span><i class="sw x"></i>x and A x</span>
+      </div>
+      <p class="hint">Drag the small point on the circle to move x. ‖A x‖₂ always lies between σ₂ and σ₁.</p>
+    </section>
+
+    <div class="side">
+      <section class="card">
+        <h2>Matrix</h2>
+        <div class="presets" id="presets"></div>
+        <div class="matrixrow">
+          <span class="matlabel">A =</span>
+          <div class="matrix">
+            <input id="a11" type="number" step="0.1" aria-label="a11">
+            <input id="a12" type="number" step="0.1" aria-label="a12">
+            <input id="a21" type="number" step="0.1" aria-label="a21">
+            <input id="a22" type="number" step="0.1" aria-label="a22">
+          </div>
+        </div>
+        <div class="sliders">
+          <label for="s11">a₁₁<input id="s11" type="range" min="-3" max="3" step="0.01"></label>
+          <label for="s12">a₁₂<input id="s12" type="range" min="-3" max="3" step="0.01"></label>
+          <label for="s21">a₂₁<input id="s21" type="range" min="-3" max="3" step="0.01"></label>
+          <label for="s22">a₂₂<input id="s22" type="range" min="-3" max="3" step="0.01"></label>
+        </div>
+        <label class="check" for="sym"><input id="sym" type="checkbox"> Keep A symmetric (a₂₁ = a₁₂)</label>
+      </section>
+
+      <section class="card">
+        <span class="chip" id="typechip">–</span>
+        <p class="verdict" id="verdict"></p>
+        <div class="tablewrap">
+          <table>
+            <tbody>
+              <tr><td class="k">Eigenvalues λ of A</td><td class="v" id="r-eig">–</td><td class="m"></td></tr>
+              <tr><td class="k">Singular values σ₁, σ₂ (half-axes)</td><td class="v" id="r-sv">–</td><td class="m"></td></tr>
+              <tr class="key"><td class="k">cond₂(A) = σ₁ / σ₂</td><td class="v" id="r-cond">–</td><td class="m"></td></tr>
+              <tr><td class="k">max |λ| / min |λ|</td><td class="v" id="r-abs">–</td><td class="m" id="m-abs"></td></tr>
+              <tr><td class="k">λ_max / λ_min (Lemma 2.3 as printed)</td><td class="v" id="r-printed">–</td><td class="m" id="m-printed"></td></tr>
+              <tr><td class="k">‖A x‖₂ for the current x</td><td class="v" id="r-ax">–</td><td class="m"></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <section class="card explain standalone-only">
+    <h2>How to read the picture</h2>
+    <p><b>Half-axes are singular values.</b> The ellipse is the set of all A x with ‖x‖₂ = 1. Its longest half-axis has length σ₁ = max ‖A x‖₂ = ‖A‖₂. Its shortest has length σ₂ = min ‖A x‖₂ = 1/‖A⁻¹‖₂. Hence cond₂(A) = σ₁/σ₂ is the ratio of the two half-axes: a round ellipse means a well-conditioned matrix, a flat one an ill-conditioned matrix. σ₁² and σ₂² are the eigenvalues of AᵀA (corrected Lemma 2.3).</p>
+    <p><b>Symmetric A: eigenvectors lie on the axes.</b> The eigenvectors of a symmetric matrix are perpendicular, and A only stretches them by λ. So they point along the half-axes, and σᵢ = |λᵢ|. For a symmetric positive definite matrix all λ are positive and cond₂(A) = λ_max/λ_min, as printed in the notes. With a negative eigenvalue the arrow λ v points against v, and only the absolute values give cond₂.</p>
+    <p><b>Non-symmetric A: eigenvectors and axes separate.</b> Try the shear: both eigenvalues are 1, so the eigenvalue formula gives 1, but the ellipse is clearly flat and cond₂ = 4. With the rotation and scaling there are no real eigen-directions at all, while the ellipse is a circle and cond₂ = 1.</p>
+  </section>
+
+  <footer class="standalone-only">Companion to the corrigendum of Lemma 2.3 in the lecture notes. For Exercise 1c) choose "A₁ from Sheet 02": the ellipse is almost a line segment, because σ₂ ≈ 5 · 10⁻⁵.</footer>
+</div>
+
+<script>
+(function () {
+  const PRESETS = [
+    { id: "spd", name: "Symmetric positive definite", A: [2, 1, 1, 1.5] },
+    { id: "sheet", name: "A₁ from Sheet 02", A: [1, 1, 1, 1.0001] },
+    { id: "indef", name: "Symmetric indefinite", A: [2, 1, 1, -1] },
+    { id: "shear", name: "Shear", A: [1, 1.5, 0, 1] },
+    { id: "rot", name: "Rotation and scaling", A: [1, -1, 1, 1] },
+    { id: "diag", name: "Diagonal", A: [2.5, 0, 0, 0.5] },
+  ];
+  const ids = ["a11", "a12", "a21", "a22"];
+  const sids = ["s11", "s12", "s21", "s22"];
+  const st = { A: PRESETS[0].A.slice(), theta: 2.3, preset: "spd" };
+  const $ = id => document.getElementById(id);
+  const svg = $("plot");
+  const NS = "http://www.w3.org/2000/svg";
+  const W = 300;
+
+  // ---------- linear algebra for 2 x 2 ----------
+  function analyse(A) {
+    const [a, b, c, d] = A;
+    const p = a * a + c * c, q = a * b + c * d, r = b * b + d * d;      // A^T A = [[p, q], [q, r]]
+    const m = (p + r) / 2, s = Math.hypot((p - r) / 2, q);
+    const e1 = m + s, e2 = Math.max(m - s, 0);
+    const s1 = Math.sqrt(e1), s2 = Math.sqrt(e2);
+    let v1;
+    if (Math.abs(q) > 1e-15 * Math.max(1, e1)) v1 = norm([q, e1 - p]);
+    else v1 = p >= r ? [1, 0] : [0, 1];
+    const v2 = [-v1[1], v1[0]];
+    const Av = v => [a * v[0] + b * v[1], c * v[0] + d * v[1]];
+    const u1 = s1 > 0 ? scale(Av(v1), 1 / s1) : [1, 0];
+    const u2 = s2 > 1e-300 ? scale(Av(v2), 1 / s2) : [-u1[1], u1[0]];
+    const tr = a + d, det = a * d - b * c, disc = tr * tr - 4 * det;
+    const tol = 1e-12 * Math.max(1, tr * tr);
+    let eig;
+    if (disc < -tol) {
+      eig = { complex: true, re: tr / 2, im: Math.sqrt(-disc) / 2 };
+    } else {
+      const sq = Math.sqrt(Math.max(disc, 0));
+      const l1 = (tr + sq) / 2, l2 = (tr - sq) / 2;
+      const vec = l => {
+        if (Math.abs(c) > 1e-14) return norm([l - d, c]);
+        if (Math.abs(b) > 1e-14) return norm([b, l - a]);
+        return Math.abs(l - a) <= Math.abs(l - d) ? [1, 0] : [0, 1];
+      };
+      const repeated = Math.abs(disc) <= tol;
+      const diagonalish = Math.abs(b) < 1e-14 && Math.abs(c) < 1e-14;
+      let vecs;
+      if (repeated && !diagonalish) vecs = [vec(l1)];          // defective: one eigen-direction
+      else if (repeated && diagonalish) vecs = [[1, 0], [0, 1]];
+      else vecs = [vec(l1), vec(l2)];
+      eig = { complex: false, l: [l1, l2], vecs, repeated };
+    }
+    return { s1, s2, v1, v2, u1, u2, det, eig, cond: s2 > 0 ? s1 / s2 : Infinity, Av };
+  }
+  const norm = v => { const n = Math.hypot(v[0], v[1]) || 1; return [v[0] / n, v[1] / n]; };
+  const scale = (v, k) => [v[0] * k, v[1] * k];
+
+  function fmt(x) {
+    if (!isFinite(x)) return "∞";
+    if (x === 0) return "0";
+    const ax = Math.abs(x);
+    if (ax >= 1e4 || ax < 1e-3) {
+      const [mant, ex] = x.toExponential(2).split("e");
+      return mant + " · 10" + sup(parseInt(ex, 10));
+    }
+    return parseFloat(x.toPrecision(4)).toString();
+  }
+  function sup(n) {
+    const map = { "-": "⁻", "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴", "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹" };
+    return String(n).split("").map(ch => map[ch] || ch).join("");
+  }
+  const close = (x, y) => isFinite(x) && isFinite(y) && Math.abs(x - y) <= 1e-6 * Math.max(Math.abs(x), Math.abs(y), 1e-300);
+
+  // ---------- drawing ----------
+  function el(tag, attrs, parent) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    (parent || svg).appendChild(e);
+    return e;
+  }
+  function niceRange(maxv) {
+    const R = Math.max(1, maxv) * 1.22;
+    const steps = [0.25, 0.5, 1, 2, 2.5, 5, 10, 20, 50, 100];
+    const step = steps.find(s => R / s <= 6) || 200;
+    return { R, step };
+  }
+  function arrow(g, x0, y0, x1, y1, color, w, k) {
+    const X0 = x0 * k, Y0 = -y0 * k, X1 = x1 * k, Y1 = -y1 * k;
+    const len = Math.hypot(X1 - X0, Y1 - Y0);
+    if (len < 1e-9) return;
+    const ux = (X1 - X0) / len, uy = (Y1 - Y0) / len;
+    const h = Math.min(11 + w, len * 0.6), hw = h * 0.42;
+    const bx = X1 - ux * h, by = Y1 - uy * h;
+    el("line", { x1: X0, y1: Y0, x2: bx, y2: by, stroke: color, "stroke-width": w, "stroke-linecap": "round" }, g);
+    el("polygon", { points: `${X1},${Y1} ${bx - uy * hw},${by + ux * hw} ${bx + uy * hw},${by - ux * hw}`, fill: color }, g);
+  }
+  function label(g, x, y, txt, color, k, weight) {
+    const X = x * k, Y = -y * k;
+    const n = Math.hypot(X, Y) || 1;
+    const off = 16;
+    const t = el("text", { x: X + X / n * off, y: Y + Y / n * off + 5, fill: color, "font-family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace", "font-size": 15, "font-weight": weight || 500, "text-anchor": "middle", "paint-order": "stroke", stroke: "var(--card)", "stroke-width": 4 }, g);
+    t.textContent = txt;
+  }
+
+  function render() {
+    const A = st.A;
+    const res = analyse(A);
+    const { R, step } = niceRange(Math.max(res.s1, res.eig.complex ? 0 : Math.max(...res.eig.l.map(Math.abs))));
+    const k = W / R;
+    svg.innerHTML = "";
+    const css = getComputedStyle(document.documentElement);
+    const C = n => css.getPropertyValue(n).trim();
+    const ink = C("--ink"), muted = C("--muted"), accent = C("--accent"), eigc = C("--eig"), grid = C("--plotgrid");
+
+    const gGrid = el("g", {});
+    for (let v = -Math.floor(R / step) * step; v <= R + 1e-9; v += step) {
+      const P = v * k;
+      el("line", { x1: P, y1: -W, x2: P, y2: W, stroke: grid, "stroke-width": Math.abs(v) < 1e-9 ? 1.6 : 1 }, gGrid);
+      el("line", { x1: -W, y1: P, x2: W, y2: P, stroke: grid, "stroke-width": Math.abs(v) < 1e-9 ? 1.6 : 1 }, gGrid);
+      if (Math.abs(v) > 1e-9) {
+        const t = el("text", { x: P, y: W - 8, fill: muted, "font-size": 11, "text-anchor": "middle", "font-family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" }, gGrid);
+        t.textContent = +v.toFixed(2);
+        const t2 = el("text", { x: -W + 6, y: -P + 4, fill: muted, "font-size": 11, "text-anchor": "start", "font-family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" }, gGrid);
+        t2.textContent = +v.toFixed(2);
+      }
+    }
+    el("rect", { x: -W, y: -W, width: 2 * W, height: 2 * W, fill: "none", stroke: grid }, gGrid);
+
+    // eigen-direction lines (behind)
+    const gE = el("g", {});
+    if (!res.eig.complex) {
+      res.eig.vecs.forEach(v => {
+        el("line", { x1: -v[0] * W * 2, y1: v[1] * W * 2, x2: v[0] * W * 2, y2: -v[1] * W * 2, stroke: eigc, "stroke-width": 1.2, "stroke-dasharray": "2 5", opacity: 0.9 }, gE);
+      });
+    }
+
+    // unit circle
+    el("circle", { cx: 0, cy: 0, r: k, fill: "none", stroke: muted, "stroke-width": 1.5, "stroke-dasharray": "5 5" });
+
+    // ellipse
+    let d = "";
+    for (let i = 0; i <= 180; i++) {
+      const t = (i / 180) * 2 * Math.PI;
+      const p = res.Av([Math.cos(t), Math.sin(t)]);
+      d += (i ? "L" : "M") + (p[0] * k).toFixed(2) + "," + (-p[1] * k).toFixed(2);
+    }
+    el("path", { d: d + "Z", fill: C("--accent-soft"), stroke: accent, "stroke-width": 2 });
+
+    // half-axes
+    const gS = el("g", {});
+    arrow(gS, 0, 0, res.s1 * res.u1[0], res.s1 * res.u1[1], accent, 3, k);
+    arrow(gS, 0, 0, res.s2 * res.u2[0], res.s2 * res.u2[1], accent, 3, k);
+    label(gS, res.s1 * res.u1[0], res.s1 * res.u1[1], "σ₁", accent, k, 600);
+    if (res.s2 * k > 14) label(gS, res.s2 * res.u2[0], res.s2 * res.u2[1], "σ₂", accent, k, 600);
+
+    // eigen arrows lambda * v
+    if (!res.eig.complex) {
+      const ls = res.eig.vecs.length === 2 ? res.eig.l : [res.eig.l[0]];
+      res.eig.vecs.forEach((v, i) => {
+        const l = ls[i];
+        arrow(gE, 0, 0, l * v[0], l * v[1], eigc, 2.2, k);
+        label(gE, l * v[0], l * v[1], res.eig.vecs.length === 2 ? `λ${i ? "₂" : "₁"}` : "λ", eigc, k, 600);
+      });
+    }
+
+    // x and Ax
+    const x = [Math.cos(st.theta), Math.sin(st.theta)];
+    const Ax = res.Av(x);
+    const gX = el("g", {});
+    el("line", { x1: x[0] * k, y1: -x[1] * k, x2: Ax[0] * k, y2: -Ax[1] * k, stroke: muted, "stroke-width": 1, "stroke-dasharray": "1 4" }, gX);
+    arrow(gX, 0, 0, x[0], x[1], muted, 1.6, k);
+    arrow(gX, 0, 0, Ax[0], Ax[1], ink, 2, k);
+    label(gX, Ax[0], Ax[1], "Ax", ink, k);
+    el("circle", { cx: x[0] * k, cy: -x[1] * k, r: 9, fill: C("--card"), stroke: ink, "stroke-width": 2, id: "handle", style: "cursor:grab" }, gX);
+
+    // readouts
+    const eigTxt = res.eig.complex ? `${fmt(res.eig.re)} ± ${fmt(res.eig.im)} i` :
+      res.eig.repeated ? `${fmt(res.eig.l[0])} (twice)` : `${fmt(res.eig.l[0])}, ${fmt(res.eig.l[1])}`;
+    $("r-eig").textContent = eigTxt;
+    $("r-sv").textContent = `${fmt(res.s1)}, ${fmt(res.s2)}`;
+    $("r-cond").textContent = fmt(res.cond);
+    $("r-ax").textContent = fmt(Math.hypot(Ax[0], Ax[1]));
+
+    let absR = NaN, printed = NaN;
+    if (!res.eig.complex) {
+      const L = res.eig.l, aL = L.map(Math.abs);
+      absR = Math.max(...aL) / Math.min(...aL);
+      printed = Math.max(...L) / Math.min(...L);
+    }
+    const setM = (id, val, mid) => {
+      $(id).textContent = isNaN(val) ? "not defined" : fmt(val);
+      const m = $(mid);
+      if (isNaN(val)) { m.textContent = "✗"; m.className = "m no"; return; }
+      const ok = close(val, res.cond);
+      m.textContent = ok ? "✓" : "✗"; m.className = "m " + (ok ? "ok" : "no");
+    };
+    setM("r-abs", absR, "m-abs");
+    setM("r-printed", printed, "m-printed");
+
+    const [a, b, c, dd] = A;
+    const sym = Math.abs(b - c) <= 1e-12 * Math.max(1, Math.abs(b), Math.abs(c));
+    let type, verdict;
+    if (Math.abs(res.det) < 1e-14) {
+      type = "Singular"; verdict = "det A = 0: the ellipse collapses to a line segment, σ₂ = 0 and cond₂(A) = ∞.";
+    } else if (sym && !res.eig.complex && Math.min(...res.eig.l) > 0) {
+      type = "Symmetric positive definite";
+      verdict = "The eigenvectors lie on the half-axes and σᵢ = λᵢ, so all three formulas agree. Lemma 2.3 as printed is correct here.";
+    } else if (sym) {
+      type = "Symmetric, indefinite";
+      verdict = "The eigenvectors still lie on the half-axes, but a negative λ points against its eigenvector. σᵢ = |λᵢ|: only the ratio of absolute values gives cond₂.";
+    } else if (res.eig.complex) {
+      type = "Not symmetric, complex eigenvalues";
+      verdict = "There are no real eigen-directions, so λ_max and λ_min are not defined. cond₂ comes from the half-axes alone.";
+    } else {
+      type = "Not symmetric";
+      verdict = "The eigen-directions are not the half-axes of the ellipse, so the eigenvalues do not give cond₂. Only σ₁/σ₂ does.";
+    }
+    $("typechip").textContent = type;
+    $("verdict").textContent = verdict;
+
+    // sync inputs
+    ids.forEach((id, i) => { const inp = $(id); if (document.activeElement !== inp) inp.value = +A[i].toPrecision(6); });
+    sids.forEach((id, i) => { $(id).value = A[i]; });
+    document.querySelectorAll("#presets button").forEach(bt => bt.classList.toggle("on", bt.dataset.id === st.preset));
+  }
+
+  // ---------- controls ----------
+  const pre = $("presets");
+  PRESETS.forEach(p => {
+    const bt = document.createElement("button");
+    bt.type = "button"; bt.textContent = p.name; bt.dataset.id = p.id;
+    bt.addEventListener("click", () => {
+      st.A = p.A.slice(); st.preset = p.id;
+      $("sym").checked = Math.abs(p.A[1] - p.A[2]) < 1e-12;
+      render();
+    });
+    pre.appendChild(bt);
+  });
+  function setEntry(i, v) {
+    if (!isFinite(v)) return;
+    st.A[i] = v;
+    if ($("sym").checked && (i === 1 || i === 2)) st.A[3 - i] = v;
+    st.preset = null;
+    render();
+  }
+  ids.forEach((id, i) => $(id).addEventListener("input", e => setEntry(i, parseFloat(e.target.value))));
+  sids.forEach((id, i) => $(id).addEventListener("input", e => setEntry(i, parseFloat(e.target.value))));
+  $("sym").addEventListener("change", e => {
+    if (e.target.checked) { st.A[2] = st.A[1]; st.preset = null; render(); }
+  });
+
+  // drag x on the unit circle
+  function angleFromEvent(ev) {
+    const pt = svg.createSVGPoint();
+    pt.x = ev.clientX; pt.y = ev.clientY;
+    const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+    return Math.atan2(-p.y, p.x);
+  }
+  let dragging = false;
+  svg.addEventListener("pointerdown", ev => { dragging = true; svg.setPointerCapture(ev.pointerId); st.theta = angleFromEvent(ev); render(); });
+  svg.addEventListener("pointermove", ev => { if (dragging) { st.theta = angleFromEvent(ev); render(); } });
+  svg.addEventListener("pointerup", () => { dragging = false; });
+  svg.addEventListener("pointercancel", () => { dragging = false; });
+
+  if (window.matchMedia) {
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    mq.addEventListener && mq.addEventListener("change", render);
+  }
+  new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+  $("sym").checked = true;
+  render();
+})();
+</script>
+
+<script>
+/* Reports the page height to the embedding page, so an iframe can size itself.
+   Message: { type: "isc-demo-height", id: <the ?id= value>, height: <pixels> } */
+(function () {
+  if (window.parent === window) return;
+  const id = new URLSearchParams(location.search).get("id") || location.pathname;
+  const send = () => {
+    try { window.parent.postMessage({ type: "isc-demo-height", id, height: Math.ceil(document.body.getBoundingClientRect().height) }, "*"); } catch (e) {}
+  };
+  if ("ResizeObserver" in window) new ResizeObserver(send).observe(document.body);
+  window.addEventListener("load", send);
+  send();
+})();
+</script>
+</body>
+</html>

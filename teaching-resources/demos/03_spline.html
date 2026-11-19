@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Interactive demo for Exercise Sheet 03, Exercise 2: the pieces, coefficients and conditions of a natural cubic spline, including the order error in Algorithm 5.">
+<title>Building a Natural Cubic Spline</title>
+<script>
+  /* ?embed hides the page heading and explanation, for use inside an <iframe> */
+  if (new URLSearchParams(location.search).has("embed")) document.documentElement.classList.add("embed");
+</script>
+<style>
+:root {
+  --paper: #f6f8f7;
+  --grid: rgba(40, 92, 120, 0.07);
+  --card: #ffffff;
+  --ink: #17232b;
+  --muted: #5a6a73;
+  --line: #d6dfe2;
+  --accent: #1f5f86;
+  --accent-soft: rgba(31, 95, 134, 0.13);
+  --eig: #b4570f;
+  --good: #1d7a4c;
+  --good-soft: #e2f3ea;
+  --bad: #b03a2e;
+  --bad-soft: #f8e5e2;
+  --plotgrid: #e3e9eb;
+  --c1: #1f6fb2; --c2: #d9731a; --c3: #2a9d5c; --c4: #c0392b; --c5: #7d5ba6; --c6: #8c6239; --c7: #c2497f; --c8: #5f6b73;
+  --f-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --f-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --f-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #12191d; --grid: rgba(140, 190, 215, 0.05); --card: #1a2328; --ink: #e3ebee; --muted: #93a4ad;
+    --line: #2c3a41; --accent: #7fb8dc; --accent-soft: rgba(127, 184, 220, 0.16); --eig: #f0a35e;
+    --good: #6fcf9b; --good-soft: #173527; --bad: #f0907f; --bad-soft: #3d201c; --plotgrid: #243037; color-scheme: dark;
+    --c1: #79b6e8; --c2: #f2a65a; --c3: #6fcf9b; --c4: #f0907f; --c5: #b9a0e0; --c6: #d2a679; --c7: #ec8fbd; --c8: #a9b6bd;
+  }
+}
+:root[data-theme="dark"] {
+    --c1: #79b6e8; --c2: #f2a65a; --c3: #6fcf9b; --c4: #f0907f; --c5: #b9a0e0; --c6: #d2a679; --c7: #ec8fbd; --c8: #a9b6bd;
+
+  --paper: #12191d; --grid: rgba(140, 190, 215, 0.05); --card: #1a2328; --ink: #e3ebee; --muted: #93a4ad;
+  --line: #2c3a41; --accent: #7fb8dc; --accent-soft: rgba(127, 184, 220, 0.16); --eig: #f0a35e;
+  --good: #6fcf9b; --good-soft: #173527; --bad: #f0907f; --bad-soft: #3d201c; --plotgrid: #243037; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  background-color: var(--paper);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+}
+.wrap {
+  max-width: 1180px; margin: 0 auto; padding-block: 32px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 20px;
+}
+header.page { display: grid; gap: 8px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--f-display); font-weight: 600; font-size: clamp(28px, 5vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+.lede { margin: 0; color: var(--muted); max-width: 70ch; }
+button {
+  font: inherit; font-size: 14px; cursor: pointer; border-radius: 7px; border: 1px solid var(--line);
+  background: transparent; color: var(--ink); padding: 6px 12px;
+}
+button:hover { border-color: var(--accent); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; min-width: 0; }
+.explain { display: grid; gap: 10px; }
+.explain h2 { font-family: var(--f-display); font-weight: 600; font-size: 20px; margin: 0; }
+.explain p { margin: 0; max-width: 72ch; }
+.tablewrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 7px 6px; border-top: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; border-top: 0; }
+footer { color: var(--muted); font-size: 13px; }
+.main { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 880px) { .main { grid-template-columns: minmax(0, 1fr); } }
+.twocol { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; align-items: start; }
+.plots, .side { display: grid; gap: 16px; min-width: 0; }
+.plotcard { display: grid; gap: 6px; }
+.plottitle { font-family: var(--f-display); font-weight: 600; font-size: 18px; margin: 0; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.hint { font-family: var(--f-body); font-weight: 400; font-size: 13px; color: var(--muted); }
+.card h2 { font-family: var(--f-display); font-weight: 600; font-size: 18px; margin: 0 0 10px; }
+svg { width: 100%; height: auto; display: block; touch-action: none; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { display: inline-block; width: 18px; height: 0; border-top: 2.5px solid; }
+.legend i.dash { border-top-style: dashed; }
+td, th { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.ok { color: var(--good); font-weight: 600; }
+td.no { color: var(--bad); font-weight: 600; }
+.matrix td { text-align: right; padding: 4px 6px; }
+.matrix td.sep { border-left: 2px solid var(--line); }
+.matrix td.zero { color: var(--muted); opacity: 0.5; }
+.rangerow { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 6px; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+.rangerow output { font-family: var(--f-mono); color: var(--ink); }
+.rangerow input { flex-basis: 100%; width: 100%; accent-color: var(--accent); }
+.check { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--muted); margin: 8px 0; }
+.check input { accent-color: var(--accent); margin-top: 3px; }
+.note { font-size: 13px; color: var(--muted); margin: 8px 0 0; max-width: 72ch; }
+.seg { display: inline-flex; }
+.seg button { font-family: var(--f-mono); font-size: 13px; padding: 2px 10px; border-radius: 0; }
+.seg button:first-child { border-radius: 6px 0 0 6px; }
+.seg button:last-child { border-radius: 0 6px 6px 0; border-left: 0; }
+.handle { cursor: ns-resize; }
+
+/* Embed mode (?embed): only the interactive part, for iframes */
+html.embed .wrap { padding-block: 4px 8px; }
+html.embed .standalone-only { display: none !important; }
+html.embed body { background-image: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="page standalone-only">
+    <span class="eyebrow">Introduction to Scientific Computing · Chapter 3 · Exercise Sheet 03, Exercise 2</span>
+    <h1>Building a Natural Cubic Spline</h1>
+    <p class="lede">On each interval [xᵢ₋₁, xᵢ] the spline is a cubic pᵢ(x) = a₀⁽ⁱ⁾ + a₁⁽ⁱ⁾(x − xᵢ) + a₂⁽ⁱ⁾(x − xᵢ)² + a₃⁽ⁱ⁾(x − xᵢ)³. The four conditions before Theorem 3.6 fix all 4n coefficients. Drag the data points and watch the coefficients, the system (3.12) and the conditions at every node.</p>
+  </header>
+
+  <div class="main">
+    <div class="plots">
+      <section class="card plotcard" aria-label="Spline">
+        <h2 class="plottitle">Spline s(x), one colour per piece <span class="hint">drag a point up or down</span></h2>
+        <svg id="plotS" viewBox="0 0 640 280" role="img" aria-label="The cubic spline through the data points"></svg>
+        <div class="legend" id="legS"></div>
+      </section>
+      <section class="card plotcard" aria-label="Derivative">
+        <h2 class="plottitle"><span id="derivTitle">Second derivative s″(x)</span>
+          <span class="seg" role="group" aria-label="Derivative shown">
+            <button type="button" id="showD2" class="on" aria-pressed="true">s″</button><button type="button" id="showD1" aria-pressed="false">s′</button>
+          </span>
+        </h2>
+        <svg id="plotD" viewBox="0 0 640 200" role="img" aria-label="A derivative of the spline"></svg>
+      </section>
+    </div>
+
+    <div class="side">
+      <section class="card">
+        <h2>Setup</h2>
+        <label class="rangerow" for="nIn">intervals n = <output id="nOut">4</output>, nodes xᵢ = i, h = 1
+          <input id="nIn" type="range" min="2" max="9" step="1" value="4"></label>
+        <label class="check" for="algo5"><input id="algo5" type="checkbox"> compute in the order of Algorithm 5 as printed (a₃ and a₁ before a₂)</label>
+        <label class="check" for="poly"><input id="poly" type="checkbox"> show the interpolating polynomial of degree n</label>
+        <button type="button" id="resetBtn">Reset the data</button>
+      </section>
+
+      <section class="card">
+        <h2>Conditions</h2>
+        <p class="note" id="countNote"></p>
+        <div class="tablewrap"><table><thead><tr><th>condition</th><th>largest violation</th><th></th></tr></thead><tbody id="checkRows"></tbody></table></div>
+      </section>
+    </div>
+  </div>
+
+  <div class="twocol">
+    <section class="card">
+      <h2>System (3.12) for a₂⁽¹⁾, …, a₂⁽ⁿ⁻¹⁾, with h = 1</h2>
+      <div class="tablewrap"><table class="matrix" id="sysTable"></table></div>
+      <p class="note">Tridiagonal with 4h on the diagonal and h next to it; right-hand side (3/h)(yᵢ₊₁ − 2yᵢ + yᵢ₋₁). Then a₂⁽ⁿ⁾ = 0.</p>
+    </section>
+    <section class="card">
+      <h2>Coefficients (Theorem 3.6)</h2>
+      <div class="tablewrap"><table><thead><tr><th>piece i</th><th>a₀⁽ⁱ⁾</th><th>a₁⁽ⁱ⁾</th><th>a₂⁽ⁱ⁾</th><th>a₃⁽ⁱ⁾</th></tr></thead><tbody id="coefRows"></tbody></table></div>
+    </section>
+  </div>
+
+  <section class="card explain standalone-only">
+    <h2>What to try</h2>
+    <p><b>Look at s″.</b> It is a continuous, piecewise linear function that is 0 at both ends: the natural boundary conditions. Each piece contributes one straight segment from 2a₂⁽ⁱ⁾ − 6a₃⁽ⁱ⁾h (left end) to 2a₂⁽ⁱ⁾ (right end).</p>
+    <p><b>Turn on "Algorithm 5 as printed".</b> If a₃ and a₁ are computed before the system for a₂ is solved, they use a₂ = 0. The pieces then no longer meet: the spline jumps at the nodes, and the condition table turns red. Solving (3.12) first fixes it.</p>
+    <p><b>Compare with the polynomial.</b> Drag one point far up. The spline only changes noticeably near that point, while the polynomial of degree n reacts on the whole interval. This is the subject of Exercise 4.</p>
+  </section>
+
+  <footer class="standalone-only">Companion to Exercise Sheet 03, Exercise 2, and Theorem 3.6 of the lecture notes. With constant spacing h = 1 and nodes xᵢ = i.</footer>
+</div>
+<script>
+(function () {
+  const DEFAULT_Y = [1, 3, 2, 4, 1, 3, 0, 2, 4, 1];
+  const W = 640, ML = 44, MR = 12, MT = 12, MB = 28;
+  const NS = "http://www.w3.org/2000/svg";
+  const MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+  const SUB = "₀₁₂₃₄₅₆₇₈₉";
+  const sub = n => String(n).split("").map(d => SUB[+d]).join("");
+  const $ = id => document.getElementById(id);
+  const st = { n: 4, y: DEFAULT_Y.slice(0, 5), deriv: 2, drag: null, range: null };
+  const h = 1;
+
+  // ---------- maths ----------
+  function solveTri(diag, off, rhs) {           // symmetric tridiagonal system (Thomas algorithm)
+    const m = rhs.length, c = new Array(m), d = new Array(m);
+    if (!m) return [];
+    c[0] = off / diag; d[0] = rhs[0] / diag;
+    for (let i = 1; i < m; i++) { const den = diag - off * c[i - 1]; c[i] = off / den; d[i] = (rhs[i] - off * d[i - 1]) / den; }
+    const x = new Array(m); x[m - 1] = d[m - 1];
+    for (let i = m - 2; i >= 0; i--) x[i] = d[i] - c[i] * x[i + 1];
+    return x;
+  }
+  // coefficients a[i] = [a0, a1, a2, a3] for pieces i = 1..n (array index i-1)
+  function coefficients(y, algo5) {
+    const n = y.length - 1;
+    const rhs = []; for (let i = 1; i <= n - 1; i++) rhs.push(3 / h * (y[i + 1] - 2 * y[i] + y[i - 1]));
+    const sol = solveTri(4 * h, h, rhs);
+    const a2 = sol.concat([0]);                       // a2(1..n), a2(n) = 0
+    const a2used = algo5 ? new Array(n).fill(0) : a2; // Algorithm 5 as printed: a2 not yet known in steps 3-6
+    const a = [];
+    for (let i = 1; i <= n; i++) {
+      const a3 = i === 1 ? a2used[0] / (3 * h) : (a2used[i - 1] - a2used[i - 2]) / (3 * h);
+      const a1 = i === 1 ? (y[1] - y[0]) / h + 2 / 3 * h * a2used[0]
+                         : (y[i] - y[i - 1]) / h + h / 3 * (2 * a2used[i - 1] + a2used[i - 2]);
+      a.push([y[i], a1, a2[i - 1], a3]);
+    }
+    return { a, rhs, sol };
+  }
+  const piece = (a, i, x, d) => {                     // d-th derivative of p_i at x (i 1-based)
+    const [a0, a1, a2, a3] = a[i - 1], u = x - i * h;
+    if (d === 0) return a0 + a1 * u + a2 * u * u + a3 * u * u * u;
+    if (d === 1) return a1 + 2 * a2 * u + 3 * a3 * u * u;
+    return 2 * a2 + 6 * a3 * u;
+  };
+  const lagrange = (y, x) => y.reduce((s, yi, i) => s + yi * y.reduce((p, _, j) => (j === i ? p : p * (x - j) / (i - j)), 1), 0);
+  const fmt = v => { if (Math.abs(v) < 5e-13) v = 0; const r = parseFloat(v.toPrecision(4)); return r.toString().replace("-", "−"); };
+
+  // ---------- drawing ----------
+  const css = k => getComputedStyle(document.documentElement).getPropertyValue(k).trim();
+  function el(tag, attrs, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; }
+  function frame(svg, H, x0, x1, ylo, yhi) {
+    const X = v => ML + (v - x0) / (x1 - x0) * (W - ML - MR);
+    const Y = v => MT + (yhi - v) / (yhi - ylo) * (H - MT - MB);
+    const grid = css("--plotgrid"), muted = css("--muted");
+    const steps = [0.5, 1, 2, 2.5, 5, 10, 20, 50]; const step = steps.find(s => (yhi - ylo) / s <= 6) || 100;
+    for (let v = Math.ceil(ylo / step) * step; v <= yhi + 1e-9; v += step) {
+      el("line", { x1: ML, x2: W - MR, y1: Y(v), y2: Y(v), stroke: grid, "stroke-width": Math.abs(v) < 1e-9 ? 1.6 : 1 }, svg);
+      el("text", { x: ML - 6, y: Y(v) + 4, "text-anchor": "end", fill: muted, "font-size": 11, "font-family": MONO }, svg).textContent = String(v).replace("-", "−");
+    }
+    for (let v = 0; v <= x1 + 1e-9; v++) {
+      el("line", { x1: X(v), x2: X(v), y1: MT, y2: H - MB, stroke: grid, "stroke-dasharray": "2 4" }, svg);
+      el("text", { x: X(v), y: H - MB + 16, "text-anchor": "middle", fill: muted, "font-size": 11, "font-family": MONO }, svg).textContent = "x" + sub(v);
+    }
+    const id = svg.id + "-clip"; const cp = el("clipPath", { id }, el("defs", {}, svg));
+    el("rect", { x: ML, y: MT, width: W - ML - MR, height: H - MT - MB }, cp);
+    return { X, Y, g: el("g", { "clip-path": `url(#${id})` }, svg) };
+  }
+  const path = (fr, xs, fn) => xs.map((x, k) => (k ? "L" : "M") + fr.X(x).toFixed(1) + "," + fr.Y(fn(x)).toFixed(1)).join("");
+  const samples = (lo, hi, N) => Array.from({ length: N + 1 }, (_, k) => lo + (hi - lo) * k / N);
+
+  function render() {
+    const { n, y } = st, algo5 = $("algo5").checked, showPoly = $("poly").checked;
+    const C = [1, 2, 3, 4, 5, 6, 7, 8].map(i => css("--c" + i));
+    const ink = css("--ink"), muted = css("--muted"), card = css("--card");
+    const { a, rhs, sol } = coefficients(y, algo5);
+
+    // ---- spline plot ----
+    const svgS = $("plotS"); svgS.innerHTML = "";
+    let lo = Math.min(0, ...y), hi = Math.max(...y);
+    for (let i = 1; i <= n; i++) samples((i - 1) * h, i * h, 30).forEach(x => { const v = piece(a, i, x, 0); lo = Math.min(lo, v); hi = Math.max(hi, v); });
+    if (showPoly) samples(0, n, 200).forEach(x => { const v = lagrange(y, x); lo = Math.min(lo, v); hi = Math.max(hi, v); });
+    lo = Math.max(lo, -15); hi = Math.min(hi, 20);
+    const pad = 0.1 * (hi - lo || 1); lo -= pad; hi += pad;
+    if (!st.drag) st.range = [lo, hi]; else [lo, hi] = st.range;
+    const fr = frame(svgS, 280, -0.15, n + 0.15, lo, hi);
+    if (showPoly) el("path", { d: path(fr, samples(0, n, 300), x => Math.max(lo - 50, Math.min(hi + 50, lagrange(y, x)))), fill: "none", stroke: muted, "stroke-width": 1.8, "stroke-dasharray": "6 4" }, fr.g);
+    for (let i = 1; i <= n; i++) el("path", { d: path(fr, samples((i - 1) * h, i * h, 40), x => piece(a, i, x, 0)), fill: "none", stroke: C[(i - 1) % 8], "stroke-width": 3 }, fr.g);
+    y.forEach((yi, i) => {
+      const c = el("circle", { cx: fr.X(i * h), cy: fr.Y(yi), r: 7, fill: card, stroke: ink, "stroke-width": 2, class: "handle" }, svgS);
+      c.addEventListener("pointerdown", e => { e.preventDefault(); st.drag = { i }; svgS.setPointerCapture && svgS.setPointerCapture(e.pointerId); });
+    });
+    $("legS").innerHTML = Array.from({ length: n }, (_, k) => `<span><i style="border-top-color:${C[k % 8]}"></i>p${sub(k + 1)}</span>`).join("") +
+      (showPoly ? `<span><i class="dash" style="border-top-color:${muted}"></i>polynomial of degree ${n}</span>` : "");
+
+    // ---- derivative plot ----
+    const d = st.deriv, svgD = $("plotD"); svgD.innerHTML = "";
+    $("derivTitle").textContent = d === 2 ? "Second derivative s″(x)" : "First derivative s′(x)";
+    let dlo = 0, dhi = 0;
+    for (let i = 1; i <= n; i++) samples((i - 1) * h, i * h, 20).forEach(x => { const v = piece(a, i, x, d); dlo = Math.min(dlo, v); dhi = Math.max(dhi, v); });
+    const dp = 0.15 * (dhi - dlo || 1); const frD = frame(svgD, 200, -0.15, n + 0.15, dlo - dp, dhi + dp);
+    for (let i = 1; i <= n; i++) {
+      el("path", { d: path(frD, samples((i - 1) * h, i * h, 40), x => piece(a, i, x, d)), fill: "none", stroke: C[(i - 1) % 8], "stroke-width": 2.6 }, frD.g);
+      [(i - 1) * h, i * h].forEach(x => el("circle", { cx: frD.X(x), cy: frD.Y(piece(a, i, x, d)), r: 3.5, fill: C[(i - 1) % 8] }, frD.g));
+    }
+
+    // ---- conditions ----
+    const jump = dd => { let m = 0; for (let i = 1; i <= n - 1; i++) m = Math.max(m, Math.abs(piece(a, i + 1, i * h, dd) - piece(a, i, i * h, dd))); return m; };
+    let interp = 0; for (let i = 1; i <= n; i++) interp = Math.max(interp, Math.abs(piece(a, i, (i - 1) * h, 0) - y[i - 1]), Math.abs(piece(a, i, i * h, 0) - y[i]));
+    const nat = Math.max(Math.abs(piece(a, 1, 0, 2)), Math.abs(piece(a, n, n * h, 2)));
+    const rows = [
+      ["1. s(xᵢ) = yᵢ, both ends of every piece", interp],
+      ["2. s′ continuous at x₁ … xₙ₋₁", jump(1)],
+      ["3. s″ continuous at x₁ … xₙ₋₁", jump(2)],
+      ["4. s″(a) = s″(b) = 0", nat],
+    ];
+    $("checkRows").innerHTML = rows.map(([lbl, v]) => { const ok = v < 1e-9; return `<tr><td style="white-space:normal">${lbl}</td><td>${fmt(v)}</td><td class="${ok ? "ok" : "no"}">${ok ? "✓" : "✗"}</td></tr>`; }).join("");
+    $("countNote").textContent = `${n} pieces have 4n = ${4 * n} coefficients. Equations: interpolation 2n = ${2 * n}, continuity of s′ n − 1 = ${n - 1}, continuity of s″ n − 1 = ${n - 1}, natural boundary 2; together ${2 * n + 2 * (n - 1) + 2}.`;
+
+    // ---- system (3.12) ----
+    const m = n - 1;
+    let html = "<tbody>";
+    for (let r = 0; r < m; r++) {
+      html += "<tr>";
+      for (let c = 0; c < m; c++) { const v = r === c ? 4 * h : Math.abs(r - c) === 1 ? h : 0; html += `<td class="${v ? "" : "zero"}">${v}</td>`; }
+      html += `<td class="sep">a₂${"⁽" + "⁰¹²³⁴⁵⁶⁷⁸⁹"[r + 1] + "⁾"} = ${fmt(sol[r])}</td><td class="sep">${fmt(rhs[r])}</td></tr>`;
+    }
+    $("sysTable").innerHTML = html + "</tbody>";
+
+    // ---- coefficients ----
+    $("coefRows").innerHTML = a.map((ai, k) => `<tr><td style="color:${C[k % 8]}">${k + 1}</td>${ai.map(v => `<td>${fmt(v)}</td>`).join("")}</tr>`).join("");
+
+    $("nIn").value = n; $("nOut").textContent = n;
+    window.__spline = { a, interp, jump1: jump(1), jump2: jump(2), nat };
+  }
+
+  // ---------- interaction ----------
+  const svgS = $("plotS");
+  svgS.addEventListener("pointermove", e => {
+    if (!st.drag) return;
+    const pt = svgS.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+    const P = pt.matrixTransform(svgS.getScreenCTM().inverse()), [lo, hi] = st.range;
+    st.y[st.drag.i] = Math.round((hi - (P.y - MT) / (280 - MT - MB) * (hi - lo)) * 4) / 4;
+    render();
+  });
+  svgS.addEventListener("pointerup", () => { st.drag = null; render(); });
+  svgS.addEventListener("pointercancel", () => { st.drag = null; });
+  $("nIn").addEventListener("input", e => {
+    const n = +e.target.value; st.n = n;
+    st.y = Array.from({ length: n + 1 }, (_, i) => (i < st.y.length ? st.y[i] : DEFAULT_Y[i % DEFAULT_Y.length]));
+    render();
+  });
+  $("algo5").addEventListener("change", render);
+  $("poly").addEventListener("change", render);
+  $("resetBtn").addEventListener("click", () => { st.y = DEFAULT_Y.slice(0, st.n + 1); render(); });
+  [["showD2", 2], ["showD1", 1]].forEach(([id, d]) => $(id).addEventListener("click", () => {
+    st.deriv = d;
+    ["showD2", "showD1"].forEach(b => { const on = b === id; $(b).classList.toggle("on", on); $(b).setAttribute("aria-pressed", on); });
+    render();
+  }));
+  if (window.matchMedia) { const mq = window.matchMedia("(prefers-color-scheme: dark)"); mq.addEventListener && mq.addEventListener("change", render); }
+  render();
+})();
+</script>
+
+<script>
+/* Reports the page height to the embedding page, so an iframe can size itself.
+   Message: { type: "isc-demo-height", id: <the ?id= value>, height: <pixels> } */
+(function () {
+  if (window.parent === window) return;
+  const id = new URLSearchParams(location.search).get("id") || location.pathname;
+  const send = () => {
+    try { window.parent.postMessage({ type: "isc-demo-height", id, height: document.documentElement.scrollHeight }, "*"); } catch (e) {}
+  };
+  if ("ResizeObserver" in window) new ResizeObserver(send).observe(document.body);
+  window.addEventListener("load", send);
+  send();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Interactive demo of the Lagrange basis polynomials and the Lagrange interpolation formula (lecture notes, Section 3.1).">
+<title>The Lagrange Basis</title>
+<script>
+  /* ?embed hides the page heading and explanation, for use inside an <iframe> */
+  if (new URLSearchParams(location.search).has("embed")) document.documentElement.classList.add("embed");
+</script>
+<style>
+:root {
+  --paper: #f6f8f7;
+  --grid: rgba(40, 92, 120, 0.07);
+  --card: #ffffff;
+  --ink: #17232b;
+  --muted: #5a6a73;
+  --line: #d6dfe2;
+  --accent: #1f5f86;
+  --accent-soft: rgba(31, 95, 134, 0.13);
+  --eig: #b4570f;
+  --good: #1d7a4c;
+  --good-soft: #e2f3ea;
+  --bad: #b03a2e;
+  --bad-soft: #f8e5e2;
+  --plotgrid: #e3e9eb;
+  --c1: #1f6fb2; --c2: #d9731a; --c3: #2a9d5c; --c4: #c0392b; --c5: #7d5ba6; --c6: #8c6239; --c7: #c2497f; --c8: #5f6b73;
+  --f-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --f-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --f-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #12191d; --grid: rgba(140, 190, 215, 0.05); --card: #1a2328; --ink: #e3ebee; --muted: #93a4ad;
+    --line: #2c3a41; --accent: #7fb8dc; --accent-soft: rgba(127, 184, 220, 0.16); --eig: #f0a35e;
+    --good: #6fcf9b; --good-soft: #173527; --bad: #f0907f; --bad-soft: #3d201c; --plotgrid: #243037; color-scheme: dark;
+    --c1: #79b6e8; --c2: #f2a65a; --c3: #6fcf9b; --c4: #f0907f; --c5: #b9a0e0; --c6: #d2a679; --c7: #ec8fbd; --c8: #a9b6bd;
+  }
+}
+:root[data-theme="dark"] {
+    --c1: #79b6e8; --c2: #f2a65a; --c3: #6fcf9b; --c4: #f0907f; --c5: #b9a0e0; --c6: #d2a679; --c7: #ec8fbd; --c8: #a9b6bd;
+
+  --paper: #12191d; --grid: rgba(140, 190, 215, 0.05); --card: #1a2328; --ink: #e3ebee; --muted: #93a4ad;
+  --line: #2c3a41; --accent: #7fb8dc; --accent-soft: rgba(127, 184, 220, 0.16); --eig: #f0a35e;
+  --good: #6fcf9b; --good-soft: #173527; --bad: #f0907f; --bad-soft: #3d201c; --plotgrid: #243037; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  background-color: var(--paper);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+}
+.wrap {
+  max-width: 1180px; margin: 0 auto; padding-block: 32px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 20px;
+}
+header.page { display: grid; gap: 8px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--f-display); font-weight: 600; font-size: clamp(28px, 5vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+.lede { margin: 0; color: var(--muted); max-width: 70ch; }
+button {
+  font: inherit; font-size: 14px; cursor: pointer; border-radius: 7px; border: 1px solid var(--line);
+  background: transparent; color: var(--ink); padding: 6px 12px;
+}
+button:hover { border-color: var(--accent); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; min-width: 0; }
+.explain { display: grid; gap: 10px; }
+.explain h2 { font-family: var(--f-display); font-weight: 600; font-size: 20px; margin: 0; }
+.explain p { margin: 0; max-width: 72ch; }
+.tablewrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 7px 6px; border-top: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; border-top: 0; }
+footer { color: var(--muted); font-size: 13px; }
+.main { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 880px) { .main { grid-template-columns: minmax(0, 1fr); } }
+.plots, .side { display: grid; gap: 16px; min-width: 0; }
+.plotcard { display: grid; gap: 6px; }
+.plottitle { font-family: var(--f-display); font-weight: 600; font-size: 18px; margin: 0; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.hint { font-family: var(--f-body); font-weight: 400; font-size: 13px; color: var(--muted); }
+svg { width: 100%; height: auto; display: block; touch-action: none; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { display: inline-block; width: 18px; height: 0; border-top: 2.5px solid; }
+.legend i.dash { border-top-style: dashed; }
+.side h2 { font-family: var(--f-display); font-weight: 600; font-size: 18px; margin: 0 0 10px; }
+.rangerow { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 6px; font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+.rangerow input { flex-basis: 100%; }
+.rangerow output { font-family: var(--f-mono); color: var(--ink); }
+.rangerow input { width: 100%; accent-color: var(--accent); }
+.presets { display: grid; gap: 6px; margin-bottom: 10px; }
+.presets button { text-align: left; }
+.check { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); margin-top: 6px; }
+.check input { accent-color: var(--accent); }
+td, th { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--f-mono); font-size: 14px; margin: 10px 0 0; overflow-wrap: anywhere; }
+.node-handle { cursor: ew-resize; }
+.value-handle { cursor: ns-resize; }
+
+/* Embed mode (?embed): only the interactive part, for iframes */
+html.embed .wrap { padding-block: 4px 8px; }
+html.embed .standalone-only { display: none !important; }
+html.embed body { background-image: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="page standalone-only">
+    <span class="eyebrow">Introduction to Scientific Computing · Chapter 3 · Section 3.1</span>
+    <h1>The Lagrange Basis</h1>
+    <p class="lede">Each basis polynomial Lᵢ(x) = ∏ⱼ≠ᵢ (x − xⱼ)/(xᵢ − xⱼ) is 1 at its own node and 0 at all other nodes, so the interpolant is simply p(x) = Σ yᵢ Lᵢ(x) (Definition 3.3, Theorem 3.5). Drag the nodes in the top plot and the data points in the bottom plot.</p>
+  </header>
+
+  <div class="main">
+    <div class="plots">
+      <section class="card plotcard" aria-label="Lagrange basis polynomials">
+        <h2 class="plottitle">Lagrange basis Lᵢ(x) <span class="hint">drag a node sideways</span></h2>
+        <svg id="top" viewBox="0 0 640 300" role="img" aria-label="The Lagrange basis polynomials for the current nodes"></svg>
+        <div class="legend" id="legTop"></div>
+      </section>
+      <section class="card plotcard" aria-label="Interpolant">
+        <h2 class="plottitle">Interpolant p(x) = Σ yᵢ Lᵢ(x) <span class="hint">drag a point up or down</span></h2>
+        <svg id="bot" viewBox="0 0 640 300" role="img" aria-label="The interpolating polynomial through the data points"></svg>
+        <div class="legend" id="legBot"></div>
+      </section>
+    </div>
+
+    <div class="side">
+      <section class="card">
+        <h2>Nodes</h2>
+        <label class="rangerow" for="nIn">number of nodes n + 1 = <output id="nOut">4</output>
+          <input id="nIn" type="range" min="2" max="8" step="1" value="4"></label>
+        <button type="button" id="equiBtn">Equidistant nodes on [−1, 2]</button>
+      </section>
+      <section class="card">
+        <h2>Values yᵢ</h2>
+        <div class="presets" id="modes"></div>
+        <label class="check" for="showTerms"><input id="showTerms" type="checkbox"> show the terms yᵢ Lᵢ(x)</label>
+        <label class="check" for="showSum"><input id="showSum" type="checkbox"> show Σᵢ Lᵢ(x)</label>
+      </section>
+      <section class="card">
+        <h2 id="degree">n = 3</h2>
+        <div class="tablewrap">
+          <table><thead><tr><th>i</th><th>xᵢ</th><th>yᵢ</th></tr></thead><tbody id="nodeTable"></tbody></table>
+        </div>
+        <p class="mono" id="monomial"></p>
+      </section>
+    </div>
+  </div>
+
+  <section class="card explain standalone-only">
+    <h2>What to try</h2>
+    <p><b>Drag a data point.</b> Only the bottom plot changes: the Lᵢ depend on the nodes alone, not on the values yᵢ. Tick "show the terms yᵢ Lᵢ(x)" to see how the point scales its own term.</p>
+    <p><b>Drag a node.</b> Now every Lᵢ changes, because each one contains all nodes.</p>
+    <p><b>All ones.</b> With yᵢ = 1 the interpolant is the constant 1, so Σᵢ Lᵢ(x) = 1 for every x. Tick "show Σᵢ Lᵢ(x)" to see it.</p>
+    <p><b>Write-up example.</b> Nodes 0, 1, 2 with y = (1, 3, 2) give p(x) = 1 + 3.5x − 1.5x², the same polynomial as the Vandermonde system (3.8).</p>
+  </section>
+
+  <footer class="standalone-only">Companion to Section 3.1 of the lecture notes. Plotted on [−2, 3] as in Example 3.1; the top plot is cut off at −1.5 and 2.5 so that the values 0 and 1 at the nodes stay readable.</footer>
+</div>
+<script>
+(function () {
+  const A = -2, B = 3;                         // plotted interval, as in Example 3.1
+  const MIN_GAP = 0.05;                        // nodes stay pairwise distinct
+  const W = 640, H = 300, ML = 44, MR = 12, MT = 12, MB = 30;
+  const NS = "http://www.w3.org/2000/svg";
+  const MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+  const SUB = "₀₁₂₃₄₅₆₇₈₉";
+  const sub = n => String(n).split("").map(d => SUB[+d]).join("");
+  const MODES = [
+    { id: "exp", label: "yᵢ = e^(xᵢ)  (Example 3.1)" },
+    { id: "writeup", label: "write-up: nodes 0, 1, 2, y = (1, 3, 2)" },
+    { id: "ones", label: "all ones, yᵢ = 1" },
+    { id: "alt", label: "alternating, yᵢ = (−1)ⁱ" },
+    { id: "random", label: "random values" },
+  ];
+  const $ = id => document.getElementById(id);
+  const st = { x: [-1, 0, 1, 2], y: null, mode: "exp", drag: null, seed: 1 };
+
+  // ---------- maths ----------
+  const L = (x, i, t) => x.reduce((acc, xj, j) => (j === i ? acc : acc * (t - xj) / (x[i] - xj)), 1);
+  function rand() { st.seed = (st.seed * 16807) % 2147483647; return st.seed / 2147483647; }
+  function values(mode, x, old) {
+    if (mode === "exp") return x.map(Math.exp);
+    if (mode === "ones") return x.map(() => 1);
+    if (mode === "alt") return x.map((_, i) => (i % 2 ? -1 : 1));
+    if (mode === "random") return x.map(() => -1.5 + 3 * rand());
+    return old;                                  // "custom" and "writeup": keep the values
+  }
+  function monomial(x, y) {                     // solve the Vandermonde system (3.8) by Gaussian elimination
+    const n = x.length, M = x.map((xi, r) => [...x.map((_, c) => Math.pow(xi, c)), y[r]]);
+    for (let k = 0; k < n; k++) {
+      let p = k; for (let r = k + 1; r < n; r++) if (Math.abs(M[r][k]) > Math.abs(M[p][k])) p = r;
+      [M[k], M[p]] = [M[p], M[k]];
+      for (let r = k + 1; r < n; r++) { const f = M[r][k] / M[k][k]; for (let c = k; c <= n; c++) M[r][c] -= f * M[k][c]; }
+    }
+    const a = new Array(n).fill(0);
+    for (let k = n - 1; k >= 0; k--) { let s = M[k][n]; for (let c = k + 1; c < n; c++) s -= M[k][c] * a[c]; a[k] = s / M[k][k]; }
+    return a;
+  }
+  const fmt = v => { const r = parseFloat(v.toPrecision(4)); return (Object.is(r, -0) ? 0 : r).toString().replace("-", "−"); };
+  function monomialText(x, y) {
+    const a = monomial(x, y), sup = "⁰¹²³⁴⁵⁶⁷⁸⁹";
+    let s = "";
+    a.forEach((ak, k) => {
+      if (Math.abs(ak) < 1e-12) return;
+      const mag = fmt(Math.abs(ak)), pw = k === 0 ? "" : k === 1 ? "x" : "x" + sup[k];
+      const body = k === 0 ? mag : (mag === "1" ? pw : mag + pw);
+      s += s ? (ak < 0 ? " − " : " + ") + body : (ak < 0 ? "−" : "") + body;
+    });
+    return "p(x) = " + (s || "0");
+  }
+
+  // ---------- drawing helpers ----------
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  function el(tag, attrs, parent) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    parent.appendChild(e);
+    return e;
+  }
+  const palette = () => [1, 2, 3, 4, 5, 6, 7, 8].map(i => css("--c" + i));
+  function axes(svg, ylo, yhi) {
+    const X = v => ML + (v - A) / (B - A) * (W - ML - MR);
+    const Y = v => MT + (yhi - v) / (yhi - ylo) * (H - MT - MB);
+    const grid = css("--plotgrid"), muted = css("--muted");
+    const span = yhi - ylo, steps = [0.25, 0.5, 1, 2, 2.5, 5, 10, 20];
+    const st_ = steps.find(s => span / s <= 7) || 50;
+    for (let v = Math.ceil(ylo / st_) * st_; v <= yhi + 1e-9; v += st_) {
+      el("line", { x1: ML, x2: W - MR, y1: Y(v), y2: Y(v), stroke: grid, "stroke-width": Math.abs(v) < 1e-9 ? 1.6 : 1 }, svg);
+      const t = el("text", { x: ML - 6, y: Y(v) + 4, "text-anchor": "end", fill: muted, "font-size": 11, "font-family": MONO }, svg);
+      t.textContent = (+v.toFixed(2)).toString().replace("-", "−");
+    }
+    for (let v = A; v <= B + 1e-9; v += 0.5) {
+      el("line", { x1: X(v), x2: X(v), y1: MT, y2: H - MB, stroke: grid, "stroke-width": 1 }, svg);
+      if (Math.abs(v - Math.round(v)) < 1e-9) {
+        const t = el("text", { x: X(v), y: H - MB + 16, "text-anchor": "middle", fill: muted, "font-size": 11, "font-family": MONO }, svg);
+        t.textContent = String(v).replace("-", "−");
+      }
+    }
+    return { X, Y };
+  }
+  function pathOf(X, Y, f, ylo, yhi) {
+    let d = "";
+    const N = 300, lo = ylo - (yhi - ylo), hi = yhi + (yhi - ylo);
+    for (let k = 0; k <= N; k++) {
+      const t = A + (B - A) * k / N, v = Math.max(lo, Math.min(hi, f(t)));
+      d += (k ? "L" : "M") + X(t).toFixed(1) + "," + Y(v).toFixed(1);
+    }
+    return d;
+  }
+  function range(fns, extra, lo0, hi0) {
+    let lo = Math.min(0, ...extra), hi = Math.max(1, ...extra);
+    fns.forEach(f => { for (let k = 0; k <= 200; k++) { const v = f(A + (B - A) * k / 200); if (isFinite(v)) { lo = Math.min(lo, v); hi = Math.max(hi, v); } } });
+    const pad = 0.1 * (hi - lo);
+    return [Math.max(lo - pad, lo0), Math.min(hi + pad, hi0)];
+  }
+
+  // ---------- render ----------
+  function render() {
+    const { x, y } = st, n1 = x.length, C = palette();
+    const ink = css("--ink"), muted = css("--muted"), card = css("--card");
+    const Ls = x.map((_, i) => t => L(x, i, t));
+    const p = t => Ls.reduce((s, Li, i) => s + y[i] * Li(t), 0);
+    const showTerms = $("showTerms").checked, showSum = $("showSum").checked;
+
+    // top: basis
+    const top = $("top"); top.innerHTML = "";
+    const [tlo, thi] = range(Ls, [], -1.5, 2.5);
+    const ta = axes(top, tlo, thi);
+    const clipT = el("clipPath", { id: "clipT" }, el("defs", {}, top));
+    el("rect", { x: ML, y: MT, width: W - ML - MR, height: H - MT - MB }, clipT);
+    const gT = el("g", { "clip-path": "url(#clipT)" }, top);
+    x.forEach((xi, i) => el("line", { x1: ta.X(xi), x2: ta.X(xi), y1: MT, y2: H - MB, stroke: muted, "stroke-dasharray": "2 4", "stroke-width": 1 }, gT));
+    Ls.forEach((Li, i) => el("path", { d: pathOf(ta.X, ta.Y, Li, tlo, thi), fill: "none", stroke: C[i % 8], "stroke-width": 2.2 }, gT));
+    if (showSum) el("path", { d: pathOf(ta.X, ta.Y, t => Ls.reduce((s, Li) => s + Li(t), 0), tlo, thi), fill: "none", stroke: ink, "stroke-width": 1.6, "stroke-dasharray": "6 4" }, gT);
+    Ls.forEach((Li, i) => x.forEach((xk, k) => el("circle", { cx: ta.X(xk), cy: ta.Y(k === i ? 1 : 0), r: 4.5, fill: k === i ? C[i % 8] : card, stroke: C[i % 8], "stroke-width": 1.8 }, gT)));
+    x.forEach((xi, i) => {
+      const h = el("rect", { x: ta.X(xi) - 7, y: MT, width: 14, height: H - MT - MB, fill: "transparent", class: "node-handle", "data-node": i }, top);
+      const tl = el("text", { x: ta.X(xi), y: MT + 12, "text-anchor": "middle", fill: C[i % 8], "font-size": 12, "font-family": MONO, "paint-order": "stroke", stroke: card, "stroke-width": 3 }, top);
+      tl.textContent = "x" + sub(i);
+      h.addEventListener("pointerdown", e => startDrag(e, "node", i));
+    });
+    $("legTop").innerHTML = x.map((_, i) => `<span><i style="border-top-color:${C[i % 8]}"></i>L${sub(i)}(x)</span>`).join("") +
+      (showSum ? `<span><i class="dash" style="border-top-color:${ink}"></i>Σᵢ Lᵢ(x) = 1</span>` : "");
+
+    // bottom: interpolant
+    const bot = $("bot"); bot.innerHTML = "";
+    const fns = [p, ...(st.mode === "exp" ? [Math.exp] : []), ...(showTerms ? Ls.map((Li, i) => t => y[i] * Li(t)) : [])];
+    let blo, bhi;
+    if (st.drag && st.drag.kind === "value" && st.botRange) [blo, bhi] = st.botRange;   // keep the axis still while dragging
+    else { [blo, bhi] = range(fns, y, -25, 25); st.botRange = [blo, bhi]; }
+    const ba = axes(bot, blo, bhi);
+    const clipB = el("clipPath", { id: "clipB" }, el("defs", {}, bot));
+    el("rect", { x: ML, y: MT, width: W - ML - MR, height: H - MT - MB }, clipB);
+    const gB = el("g", { "clip-path": "url(#clipB)" }, bot);
+    if (st.mode === "exp") el("path", { d: pathOf(ba.X, ba.Y, Math.exp, blo, bhi), fill: "none", stroke: muted, "stroke-width": 1.5, "stroke-dasharray": "6 4" }, gB);
+    if (showTerms) Ls.forEach((Li, i) => el("path", { d: pathOf(ba.X, ba.Y, t => y[i] * Li(t), blo, bhi), fill: "none", stroke: C[i % 8], "stroke-width": 1.3, opacity: 0.85 }, gB));
+    el("path", { d: pathOf(ba.X, ba.Y, p, blo, bhi), fill: "none", stroke: ink, "stroke-width": 2.6 }, gB);
+    x.forEach((xi, i) => {
+      const c = el("circle", { cx: ba.X(xi), cy: ba.Y(y[i]), r: 8, fill: C[i % 8], stroke: ink, "stroke-width": 1.5, class: "value-handle" }, bot);
+      c.addEventListener("pointerdown", e => startDrag(e, "value", i));
+    });
+    $("legBot").innerHTML = `<span><i style="border-top-color:${ink}"></i>p(x) = Σ yᵢ Lᵢ(x)</span>` +
+      (st.mode === "exp" ? `<span><i class="dash" style="border-top-color:${muted}"></i>f(x) = eˣ</span>` : "") +
+      (showTerms ? x.map((_, i) => `<span><i style="border-top-color:${C[i % 8]}"></i>y${sub(i)} L${sub(i)}(x)</span>`).join("") : "");
+
+    // side panel
+    $("degree").textContent = `n = ${n1 - 1}: polynomials of degree ≤ ${n1 - 1}`;
+    $("nodeTable").innerHTML = x.map((xi, i) => `<tr><td style="color:${C[i % 8]}">${i}</td><td>${xi.toFixed(3).replace("-", "−")}</td><td>${y[i].toFixed(3).replace("-", "−")}</td></tr>`).join("");
+    $("monomial").textContent = n1 <= 4 ? "Monomial basis: " + monomialText(x, y) : "";
+    $("nIn").value = n1; $("nOut").textContent = n1;
+    document.querySelectorAll("#modes button").forEach(b => { const on = b.dataset.id === st.mode; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
+
+    // used by the embed height reporter and by tests
+    window.__lagrange = { x: x.slice(), y: y.slice(), mode: st.mode, monomial: n1 <= 4 ? monomialText(x, y) : null };
+  }
+
+  // ---------- interaction ----------
+  function svgPoint(svg, e) {
+    const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+    return pt.matrixTransform(svg.getScreenCTM().inverse());
+  }
+  function startDrag(e, kind, i) {
+    e.preventDefault();
+    st.drag = { kind, i, svg: kind === "node" ? $("top") : $("bot") };
+    st.drag.svg.setPointerCapture && st.drag.svg.setPointerCapture(e.pointerId);
+  }
+  function onMove(e) {
+    if (!st.drag) return;
+    const { kind, i, svg } = st.drag, P = svgPoint(svg, e);
+    if (kind === "node") {
+      let v = A + (P.x - ML) / (W - ML - MR) * (B - A);
+      const lo = i > 0 ? st.x[i - 1] + MIN_GAP : A, hi = i < st.x.length - 1 ? st.x[i + 1] - MIN_GAP : B;
+      st.x[i] = Math.max(lo, Math.min(hi, v));
+      st.y = values(st.mode, st.x, st.y);
+    } else {
+      const [ylo, yhi] = st.botRange;
+      st.y[i] = yhi - (P.y - MT) / (H - MT - MB) * (yhi - ylo);
+      st.mode = "custom";
+    }
+    render();
+  }
+  ["top", "bot"].forEach(id => {
+    $(id).addEventListener("pointermove", onMove);
+    $(id).addEventListener("pointerup", () => { st.drag = null; render(); });
+    $(id).addEventListener("pointercancel", () => { st.drag = null; render(); });
+  });
+  const modes = $("modes");
+  MODES.forEach(m => {
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = m.label; b.dataset.id = m.id;
+    b.addEventListener("click", () => {
+      st.mode = m.id;
+      if (m.id === "writeup") { st.x = [0, 1, 2]; st.y = [1, 3, 2]; }
+      else st.y = values(m.id, st.x, st.y);
+      render();
+    });
+    modes.appendChild(b);
+  });
+  function setNodes(x) {
+    st.x = x;
+    if (st.mode === "custom" || st.mode === "writeup") st.mode = "exp";
+    st.y = values(st.mode, st.x, st.y);
+    render();
+  }
+  const equi = n => Array.from({ length: n }, (_, i) => -1 + 3 * i / (n - 1));
+  $("nIn").addEventListener("input", e => setNodes(equi(+e.target.value)));
+  $("equiBtn").addEventListener("click", () => setNodes(equi(st.x.length)));
+  $("showTerms").addEventListener("change", render);
+  $("showSum").addEventListener("change", render);
+  if (window.matchMedia) {
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    mq.addEventListener && mq.addEventListener("change", render);
+  }
+
+  st.y = values(st.mode, st.x);
+  render();
+})();
+</script>
+
+<script>
+/* Reports the page height to the embedding page, so an iframe can size itself.
+   Message: { type: "isc-demo-height", id: <the ?id= value>, height: <pixels> } */
+(function () {
+  if (window.parent === window) return;
+  const id = new URLSearchParams(location.search).get("id") || location.pathname;
+  const send = () => {
+    try { window.parent.postMessage({ type: "isc-demo-height", id, height: Math.ceil(document.body.getBoundingClientRect().height) }, "*"); } catch (e) {}
+  };
+  if ("ResizeObserver" in window) new ResizeObserver(send).observe(document.body);
+  window.addEventListener("load", send);
+  send();
+})();
+</script>
+</body>
+</html>
