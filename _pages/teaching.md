@@ -12,7 +12,7 @@ My teaching activities focus on scientific computing and machine learning, with 
 
 <div class="talk-entry">
 <div class="talk-title">
-Machine Learning and Uncertainty Quantification: Methods & Applications
+Machine Learning and Uncertainty Quantification: Methods and Applications
 </div>
 
 <div class="talk-meta">
@@ -27,6 +27,16 @@ Introduction to Scientific Computing
 
 <div class="talk-meta">
 Teaching assistant · MSc course · Winter Semester 2026/2027
+</div>
+</div>
+
+<div class="talk-entry">
+<div class="talk-title">
+Randomly Pivoted Cholesky for Preconditioning
+</div>
+
+<div class="talk-meta">
+Advisor · Bachelor thesis · Winter Semester 2026/2027
 </div>
 </div>
 
