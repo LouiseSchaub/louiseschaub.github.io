@@ -30,18 +30,20 @@ permalink: /cv/
   </div>
 </div>
 
+
 <div class="talk-entry">
   <div class="talk-title">M.Sc. in Mathematics</div>
+
   <div class="talk-meta">
     University of Bayreuth, Germany · October 2021-September 2024
   </div>
 
-<div class="talk-description">
+  <div class="talk-description">
     Master's thesis:
     <a href="{{ '/assets/docs/SIRLoRA-Thesis-Schaub.pdf' | relative_url }}"
        target="_blank"
        rel="noopener noreferrer">
-      <em>[System identification by Randomized Low-Rank Approximations]</em>
+      <em>[Title of your Master's thesis]</em>
       <i class="fa-solid fa-arrow-up-right-from-square"></i>
     </a>
   </div>
