@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Interactive demo for Exercise Sheet 05, Exercise 2: the affine map from the reference triangle, the vertex rule, its exactness and uniform refinement.">
+<title>Quadrature on Triangles</title>
+<script>
+  /* ?embed hides the page heading and explanation, for use inside an <iframe> */
+  if (new URLSearchParams(location.search).has("embed")) document.documentElement.classList.add("embed");
+</script>
+<style>
+:root {
+  --paper: #f6f8f7;
+  --grid: rgba(40, 92, 120, 0.07);
+  --card: #ffffff;
+  --ink: #17232b;
+  --muted: #5a6a73;
+  --line: #d6dfe2;
+  --accent: #1f5f86;
+  --accent-soft: rgba(31, 95, 134, 0.13);
+  --eig: #b4570f;
+  --good: #1d7a4c;
+  --good-soft: #e2f3ea;
+  --bad: #b03a2e;
+  --bad-soft: #f8e5e2;
+  --plotgrid: #e3e9eb;
+  --c1: #1f6fb2; --c2: #d9731a; --c3: #2a9d5c; --c4: #c0392b; --c5: #7d5ba6; --c6: #8c6239; --c7: #c2497f; --c8: #5f6b73;
+  --f-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --f-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --f-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #12191d; --grid: rgba(140, 190, 215, 0.05); --card: #1a2328; --ink: #e3ebee; --muted: #93a4ad;
+    --line: #2c3a41; --accent: #7fb8dc; --accent-soft: rgba(127, 184, 220, 0.16); --eig: #f0a35e;
+    --good: #6fcf9b; --good-soft: #173527; --bad: #f0907f; --bad-soft: #3d201c; --plotgrid: #243037; color-scheme: dark;
+    --c1: #79b6e8; --c2: #f2a65a; --c3: #6fcf9b; --c4: #f0907f; --c5: #b9a0e0; --c6: #d2a679; --c7: #ec8fbd; --c8: #a9b6bd;
+  }
+}
+:root[data-theme="dark"] {
+    --c1: #79b6e8; --c2: #f2a65a; --c3: #6fcf9b; --c4: #f0907f; --c5: #b9a0e0; --c6: #d2a679; --c7: #ec8fbd; --c8: #a9b6bd;
+
+  --paper: #12191d; --grid: rgba(140, 190, 215, 0.05); --card: #1a2328; --ink: #e3ebee; --muted: #93a4ad;
+  --line: #2c3a41; --accent: #7fb8dc; --accent-soft: rgba(127, 184, 220, 0.16); --eig: #f0a35e;
+  --good: #6fcf9b; --good-soft: #173527; --bad: #f0907f; --bad-soft: #3d201c; --plotgrid: #243037; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  background-color: var(--paper);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+}
+.wrap {
+  max-width: 1180px; margin: 0 auto; padding-block: 32px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 20px;
+}
+header.page { display: grid; gap: 8px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--f-display); font-weight: 600; font-size: clamp(28px, 5vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+.lede { margin: 0; color: var(--muted); max-width: 70ch; }
+button {
+  font: inherit; font-size: 14px; cursor: pointer; border-radius: 7px; border: 1px solid var(--line);
+  background: transparent; color: var(--ink); padding: 6px 12px;
+}
+button:hover { border-color: var(--accent); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; min-width: 0; }
+.explain { display: grid; gap: 10px; }
+.explain h2 { font-family: var(--f-display); font-weight: 600; font-size: 20px; margin: 0; }
+.explain p { margin: 0; max-width: 72ch; }
+.tablewrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 7px 6px; border-top: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; border-top: 0; }
+footer { color: var(--muted); font-size: 13px; }
+.main { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 880px) { .main { grid-template-columns: minmax(0, 1fr); } }
+.plots, .side { display: grid; gap: 16px; min-width: 0; }
+.plotcard { display: grid; gap: 6px; }
+.plottitle { font-family: var(--f-display); font-weight: 600; font-size: 18px; margin: 0 0 6px; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.hint { font-family: var(--f-body); font-weight: 400; font-size: 13px; color: var(--muted); }
+.card h2 { font-family: var(--f-display); font-weight: 600; font-size: 18px; margin: 0 0 10px; }
+svg { width: 100%; height: auto; display: block; touch-action: none; }
+td, th { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+table.small td, table.small th { padding: 3px 8px; }
+.note { font-size: 13px; color: var(--muted); margin: 8px 0 0; max-width: 76ch; }
+.verdict { margin: 8px 0 0; font-size: 14px; max-width: 76ch; }
+.verdict:empty { display: none; }
+.verdict.ok { color: var(--good); }
+.verdict.no { color: var(--bad); }
+.field { display: grid; gap: 4px; font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+select { font: inherit; font-size: 14px; width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 7px; background: var(--card); color: var(--ink); }
+.rangerow { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 6px; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+.rangerow output { font-family: var(--f-mono); color: var(--ink); }
+.rangerow input { flex-basis: 100%; width: 100%; accent-color: var(--accent); }
+.handle { cursor: move; }
+
+/* Embed mode (?embed): only the interactive part, for iframes */
+html.embed .wrap { padding-block: 4px 8px; }
+html.embed .standalone-only { display: none !important; }
+html.embed body { background-image: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="page standalone-only">
+    <span class="eyebrow">Introduction to Scientific Computing · Chapter 5 · Exercise Sheet 05, Exercise 2</span>
+    <h1>Quadrature on Triangles</h1>
+    <p class="lede">Every triangle T is the image of the reference triangle T̂ under an affine map Φ. The transformation formula turns the vertex rule on T̂, ⅙ (f(0, 0) + f(1, 0) + f(0, 1)), into the rule |T|/3 · (f(P₁) + f(P₂) + f(P₃)) on T. Drag the vertices, choose a function, and refine.</p>
+  </header>
+
+  <div class="main">
+    <div class="plots">
+      <section class="card plotcard" aria-label="Affine map">
+        <h2 class="plottitle">Φ maps T̂ onto T <span class="hint">drag the vertices P₁, P₂, P₃</span></h2>
+        <svg id="plotT" viewBox="0 0 680 330" role="img" aria-label="The reference triangle, the affine map and the triangle T"></svg>
+        <p class="note" id="phiText"></p>
+      </section>
+      <section class="card">
+        <h2>Uniform refinement: the composite vertex rule</h2>
+        <p class="note">Each refinement splits every triangle into 4 by connecting the edge midpoints, so h halves and the number of triangles grows by 4.</p>
+        <div class="tablewrap"><table><thead><tr><th>level</th><th>triangles</th><th>composite rule</th><th>error</th><th>error ratio</th></tr></thead><tbody id="refRows"></tbody></table></div>
+        <p class="verdict" id="refVerdict"></p>
+      </section>
+    </div>
+
+    <div class="side">
+      <section class="card">
+        <h2>Setup</h2>
+        <label class="field" for="fSel">function f(x, y)
+          <select id="fSel">
+            <option value="lin" selected>1 + 2x − y (linear)</option>
+            <option value="x2">x²</option>
+            <option value="sc">sin x · cos y</option>
+            <option value="gau">exp(−x² − y²)</option>
+            <option value="ex3">e^(−2x² − y²) cos(2πx) cos(πy) (Exercise 3)</option>
+          </select></label>
+        <label class="rangerow" for="rIn">refinement level shown = <output id="rOut">0</output> (<output id="ntOut">1</output> triangles)
+          <input id="rIn" type="range" min="0" max="5" step="1" value="0"></label>
+        <button type="button" id="resetBtn">Reset the triangle</button>
+      </section>
+      <section class="card">
+        <h2>The vertex rule on T</h2>
+        <div class="tablewrap"><table class="small"><tbody id="resRows"></tbody></table></div>
+        <p class="verdict" id="resVerdict"></p>
+      </section>
+    </div>
+  </div>
+
+  <section class="card explain standalone-only">
+    <h2>What to try</h2>
+    <p><b>The determinant.</b> |det DΦ| is always twice the area |T|, because T̂ has area ½. Forgetting the ½ doubles every result. Drag one vertex onto the line through the other two: det DΦ → 0, the triangle degenerates, and Φ is no longer invertible.</p>
+    <p><b>Exactness.</b> For the linear function the vertex rule is exact on every triangle (Exercise 2a and 2b): f ∘ Φ is linear again. For x² it is not: the rule integrates the linear interpolant.</p>
+    <p><b>Refinement.</b> For smooth f each refinement divides the error by about 4: order 2 in h, the same as the composite trapezoidal rule in 1D. Exercise 4a(ii) is exactly this, on a grid of squares split into two triangles each.</p>
+  </section>
+
+  <footer class="standalone-only">Companion to Exercise Sheet 05, Exercise 2 (and 4a(ii)). Reference values are computed with a 24 × 24-point Gauss rule on the triangle.</footer>
+</div>
+<script>
+(function () {
+  const NS = "http://www.w3.org/2000/svg";
+  const MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+  const SUP = "⁰¹²³⁴⁵⁶⁷⁸⁹", SUBS = "₀₁₂₃₄₅₆₇₈₉";
+  const sub = n => String(n).split("").map(d => SUBS[+d]).join("");
+  const $ = id => document.getElementById(id);
+  const css = k => getComputedStyle(document.documentElement).getPropertyValue(k).trim();
+  function el(tag, attrs, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; }
+  const sci = v => { if (v === 0) return "0"; const a = Math.abs(v), e = Math.floor(Math.log10(a)); if (e >= -3 && e < 4) return (+v.toPrecision(5)).toString().replace("-", "−"); return (v / 10 ** e).toFixed(2).replace("-", "−") + "·10" + (e < 0 ? "⁻" : "") + String(Math.abs(e)).split("").map(d => SUP[+d]).join(""); };
+  const fx = (v, d = 3) => (+v.toFixed(d)).toString().replace("-", "−");
+
+  const F = {
+    lin: (x, y) => 1 + 2 * x - y,
+    x2: (x, y) => x * x,
+    sc: (x, y) => Math.sin(x) * Math.cos(y),
+    gau: (x, y) => Math.exp(-x * x - y * y),
+    ex3: (x, y) => Math.exp(-2 * x * x - y * y) * Math.cos(2 * Math.PI * x) * Math.cos(Math.PI * y),
+  };
+  const DEF = [[0.3, 0.4], [2.6, 0.8], [1.0, 2.7]];
+  const st = { P: DEF.map(p => p.slice()), key: "lin", r: 0, drag: null };
+
+  // Gauss-Legendre on [0, 1]
+  function gaussLegendre(n) {
+    const x = [], w = [];
+    for (let i = 1; i <= n; i++) {
+      let z = Math.cos(Math.PI * (i - 0.25) / (n + 0.5)), pp = 0;
+      for (let it = 0; it < 100; it++) {
+        let p1 = 1, p2 = 0;
+        for (let j = 1; j <= n; j++) { const p3 = p2; p2 = p1; p1 = ((2 * j - 1) * z * p2 - (j - 1) * p3) / j; }
+        pp = n * (z * p1 - p2) / (z * z - 1); const dz = p1 / pp; z -= dz; if (Math.abs(dz) < 1e-15) break;
+      }
+      x.push((1 - z) / 2); w.push(1 / ((1 - z * z) * pp * pp));
+    }
+    return { x, w };
+  }
+  const GL = gaussLegendre(24);
+  const Phi = (P, u, v) => [P[0][0] + u * (P[1][0] - P[0][0]) + v * (P[2][0] - P[0][0]), P[0][1] + u * (P[1][1] - P[0][1]) + v * (P[2][1] - P[0][1])];
+  const detB = P => (P[1][0] - P[0][0]) * (P[2][1] - P[0][1]) - (P[2][0] - P[0][0]) * (P[1][1] - P[0][1]);
+  function exact(f, P) {           // Duffy transform + tensor Gauss rule
+    const d = Math.abs(detB(P)); let s = 0;
+    for (let i = 0; i < GL.x.length; i++) for (let j = 0; j < GL.x.length; j++) {
+      const u = GL.x[i], v = (1 - u) * GL.x[j]; const [x, y] = Phi(P, u, v); s += GL.w[i] * GL.w[j] * (1 - u) * f(x, y);
+    }
+    return d * s;
+  }
+  function refinedTriangles(r) {    // in reference coordinates
+    const m = 2 ** r, T = [];
+    for (let i = 0; i < m; i++) for (let j = 0; i + j < m; j++) {
+      T.push([[i / m, j / m], [(i + 1) / m, j / m], [i / m, (j + 1) / m]]);
+      if (i + j < m - 1) T.push([[(i + 1) / m, j / m], [(i + 1) / m, (j + 1) / m], [i / m, (j + 1) / m]]);
+    }
+    return T;
+  }
+  function composite(f, P, r) {
+    const area = Math.abs(detB(P)) / 2 / 4 ** r; let s = 0;
+    for (const t of refinedTriangles(r)) for (const [u, v] of t) { const [x, y] = Phi(P, u, v); s += f(x, y); }
+    return area / 3 * s;
+  }
+
+  function render() {
+    const P = st.P, f = F[st.key], d = detB(P), area = Math.abs(d) / 2;
+    const ink = css("--ink"), muted = css("--muted"), grid = css("--plotgrid"), card = css("--card"), acc = css("--c1"), acc2 = css("--c2");
+    const svg = $("plotT"); svg.innerHTML = "";
+    // left panel: reference triangle in [0,1]^2 -> box at (40..190, 60..210)
+    const RX = u => 40 + u * 170, RY = v => 250 - v * 170;
+    const TX = x => 300 + (x + 0.2) / 3.4 * 360, TY = y => 316 - (y + 0.2) / 3.4 * 300;
+    const tri = (pts, X, Y, attrs) => el("path", Object.assign({ d: "M" + pts.map(p => X(p[0]).toFixed(1) + "," + Y(p[1]).toFixed(1)).join("L") + "Z" }, attrs), svg);
+    // axes
+    el("line", { x1: RX(0), x2: RX(1.08), y1: RY(0), y2: RY(0), stroke: muted }, svg); el("line", { x1: RX(0), x2: RX(0), y1: RY(0), y2: RY(1.08), stroke: muted }, svg);
+    el("text", { x: RX(1.1), y: RY(0) + 4, fill: muted, "font-size": 12, "font-family": MONO }, svg).textContent = "ξ";
+    el("text", { x: RX(0) - 4, y: RY(1.12), fill: muted, "font-size": 12, "font-family": MONO, "text-anchor": "middle" }, svg).textContent = "η";
+    for (let x = 0; x <= 3; x++) { el("line", { x1: TX(x), x2: TX(x), y1: TY(-0.2), y2: TY(3.2), stroke: grid }, svg); el("text", { x: TX(x), y: TY(-0.2) + 0, fill: muted, "font-size": 11, "font-family": MONO, "text-anchor": "middle", dy: 12 }, svg).textContent = x; }
+    for (let y = 0; y <= 3; y++) { el("line", { y1: TY(y), y2: TY(y), x1: TX(-0.2), x2: TX(3.2), stroke: grid }, svg); el("text", { x: TX(-0.2) - 6, y: TY(y) + 4, fill: muted, "font-size": 11, "font-family": MONO, "text-anchor": "end" }, svg).textContent = y; }
+    const ref = [[0, 0], [1, 0], [0, 1]];
+    tri(ref, RX, RY, { fill: acc, "fill-opacity": 0.12, stroke: ink, "stroke-width": 2 });
+    const degenerate = area < 1e-3;
+    tri(P, TX, TY, { fill: degenerate ? css("--bad") : acc, "fill-opacity": 0.12, stroke: ink, "stroke-width": 2 });
+    // mapped grid lines (xi = const in c1, eta = const in c2)
+    for (let k = 1; k < 5; k++) {
+      const t = k / 5;
+      el("line", { x1: RX(t), y1: RY(0), x2: RX(t), y2: RY(1 - t), stroke: acc, "stroke-width": 1.2 }, svg);
+      el("line", { x1: RX(0), y1: RY(t), x2: RX(1 - t), y2: RY(t), stroke: acc2, "stroke-width": 1.2 }, svg);
+      const a1 = Phi(P, t, 0), b1 = Phi(P, t, 1 - t), a2 = Phi(P, 0, t), b2 = Phi(P, 1 - t, t);
+      el("line", { x1: TX(a1[0]), y1: TY(a1[1]), x2: TX(b1[0]), y2: TY(b1[1]), stroke: acc, "stroke-width": 1.2 }, svg);
+      el("line", { x1: TX(a2[0]), y1: TY(a2[1]), x2: TX(b2[0]), y2: TY(b2[1]), stroke: acc2, "stroke-width": 1.2 }, svg);
+    }
+    // refinement shown
+    if (st.r > 0) for (const t of refinedTriangles(st.r)) tri(t.map(([u, v]) => Phi(P, u, v)), TX, TY, { fill: "none", stroke: muted, "stroke-width": 0.7, "stroke-opacity": 0.7 });
+    // arrow
+    el("path", { d: "M215,150 C240,128 262,128 286,150", fill: "none", stroke: ink, "stroke-width": 1.6, "marker-end": "url(#arr)" }, svg);
+    const mk = el("marker", { id: "arr", viewBox: "0 0 10 10", refX: 8, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto" }, el("defs", {}, svg)); el("path", { d: "M0,0L10,5L0,10z", fill: ink }, mk);
+    el("text", { x: 250, y: 120, "text-anchor": "middle", fill: ink, "font-size": 16, "font-family": "Georgia, serif", "font-style": "italic" }, svg).textContent = "Φ";
+    const lab = ["(0, 0)", "(1, 0)", "(0, 1)"];
+    ref.forEach((p, i) => { el("circle", { cx: RX(p[0]), cy: RY(p[1]), r: 5, fill: ink }, svg); el("text", { x: RX(p[0]) + (i === 1 ? 6 : 8), y: RY(p[1]) + (i === 0 ? 16 : i === 1 ? 16 : -6), fill: muted, "font-size": 11, "font-family": MONO }, svg).textContent = lab[i]; });
+    P.forEach((p, i) => {
+      el("text", { x: TX(p[0]) + 10, y: TY(p[1]) - 10, fill: ink, "font-size": 13, "font-family": MONO, stroke: card, "stroke-width": 3, "paint-order": "stroke" }, svg).textContent = `P${sub(i + 1)}`;
+      const h = el("circle", { cx: TX(p[0]), cy: TY(p[1]), r: 8, fill: card, stroke: ink, "stroke-width": 2.2, class: "handle" }, svg);
+      h.addEventListener("pointerdown", e => { e.preventDefault(); st.drag = i; svg.setPointerCapture && svg.setPointerCapture(e.pointerId); });
+    });
+    const B = [[P[1][0] - P[0][0], P[2][0] - P[0][0]], [P[1][1] - P[0][1], P[2][1] - P[0][1]]];
+    $("phiText").innerHTML = `Φ(ξ, η) = P₁ + ξ (P₂ − P₁) + η (P₃ − P₁), &nbsp; DΦ = B = [[${fx(B[0][0])}, ${fx(B[0][1])}], [${fx(B[1][0])}, ${fx(B[1][1])}]], &nbsp; det DΦ = ${fx(d)}, &nbsp; |T| = ${fx(area)}. Blue lines: ξ = const, orange lines: η = const.`;
+
+    // vertex rule
+    const vals = P.map(p => f(p[0], p[1])), I = exact(f, P), Q = area / 3 * vals.reduce((a, b) => a + b, 0), Qwrong = Math.abs(d) / 3 * vals.reduce((a, b) => a + b, 0);
+    $("resRows").innerHTML = `<tr><td>|det DΦ|</td><td>${sci(Math.abs(d))}</td></tr><tr><td>|T| = |det DΦ| / 2</td><td>${sci(area)}</td></tr>` +
+      vals.map((v, i) => `<tr><td>f(P${sub(i + 1)})</td><td>${sci(v)}</td></tr>`).join("") +
+      `<tr><td>|T|/3 · Σ f(Pᵢ)</td><td>${sci(Q)}</td></tr><tr><td>∫_T f (reference)</td><td>${sci(I)}</td></tr><tr><td>error</td><td>${sci(Math.abs(I - Q))}</td></tr>` +
+      `<tr><td>with |det DΦ|/3 by mistake</td><td>${sci(Qwrong)}</td></tr>`;
+    const exactRule = Math.abs(I - Q) < 1e-10 * Math.max(1, Math.abs(I));
+    $("resVerdict").textContent = degenerate ? "The vertices are (almost) on one line: det DΦ ≈ 0, the triangle degenerates and Φ is not invertible." :
+      exactRule ? "Exact (up to rounding): f is linear, so f ∘ Φ is linear and Exercise 2a applies." : "Not exact: the rule integrates the linear interpolant of f through the three vertices.";
+    $("resVerdict").className = "verdict " + (degenerate ? "no" : exactRule ? "ok" : "");
+
+    // refinement table
+    let prev = null, rows = "", ratios = [];
+    for (let r = 0; r <= 6; r++) {
+      const v = composite(f, P, r), e = Math.abs(I - v);
+      const ratio = prev !== null && e > 1e-13 ? prev / e : null; if (ratio && r >= 2) ratios.push(ratio);
+      rows += `<tr style="${r === st.r ? "font-weight:700" : ""}"><td>${r}</td><td>${4 ** r}</td><td>${sci(v)}</td><td>${sci(e)}</td><td>${ratio ? ratio.toFixed(2) : "–"}</td></tr>`;
+      prev = e;
+    }
+    $("refRows").innerHTML = rows;
+    const last = ratios.length ? ratios[ratios.length - 1] : null;
+    $("refVerdict").textContent = exactRule ? "f is linear: every level is exact." : last ? `The error ratio approaches ${last.toFixed(2)} ≈ 4: halving h divides the error by 4, order 2.` : "";
+    $("rOut").textContent = st.r; $("ntOut").textContent = 4 ** st.r;
+    window.__tri = { det: d, area, Q, I, err: Math.abs(I - Q), lastRatio: last, exactRule };
+  }
+
+  const svg = $("plotT");
+  svg.addEventListener("pointermove", e => {
+    if (st.drag === null) return;
+    const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+    const x = (p.x - 300) / 360 * 3.4 - 0.2, y = (316 - p.y) / 300 * 3.4 - 0.2;
+    st.P[st.drag] = [Math.round(Math.max(-0.2, Math.min(3.2, x)) * 20) / 20, Math.round(Math.max(-0.2, Math.min(3.2, y)) * 20) / 20];
+    render();
+  });
+  svg.addEventListener("pointerup", () => { st.drag = null; });
+  $("fSel").addEventListener("change", e => { st.key = e.target.value; render(); });
+  $("rIn").addEventListener("input", e => { st.r = +e.target.value; render(); });
+  $("resetBtn").addEventListener("click", () => { st.P = DEF.map(p => p.slice()); render(); });
+  if (window.matchMedia) { const mq = window.matchMedia("(prefers-color-scheme: dark)"); mq.addEventListener && mq.addEventListener("change", render); }
+  render();
+})();
+</script>
+
+<script>
+/* Reports the page height to the embedding page, so an iframe can size itself.
+   Message: { type: "isc-demo-height", id: <the ?id= value>, height: <pixels> } */
+(function () {
+  if (window.parent === window) return;
+  const id = new URLSearchParams(location.search).get("id") || location.pathname;
+  const send = () => {
+    try { window.parent.postMessage({ type: "isc-demo-height", id, height: document.documentElement.scrollHeight }, "*"); } catch (e) {}
+  };
+  if ("ResizeObserver" in window) new ResizeObserver(send).observe(document.body);
+  window.addEventListener("load", send);
+  send();
+})();
+</script>
+</body>
+</html>

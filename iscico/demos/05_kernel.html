@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Interactive demo for Exercise Sheet 05, Exercises 1 and 3c: Gaussian kernel interpolation, the kernel width, the condition number of the kernel matrix, Cholesky and the hand computation of Exercise 1b.">
+<title>Kernel Interpolation and Cholesky</title>
+<script>
+  /* ?embed hides the page heading and explanation, for use inside an <iframe> */
+  if (new URLSearchParams(location.search).has("embed")) document.documentElement.classList.add("embed");
+</script>
+<style>
+:root {
+  --paper: #f6f8f7;
+  --grid: rgba(40, 92, 120, 0.07);
+  --card: #ffffff;
+  --ink: #17232b;
+  --muted: #5a6a73;
+  --line: #d6dfe2;
+  --accent: #1f5f86;
+  --accent-soft: rgba(31, 95, 134, 0.13);
+  --eig: #b4570f;
+  --good: #1d7a4c;
+  --good-soft: #e2f3ea;
+  --bad: #b03a2e;
+  --bad-soft: #f8e5e2;
+  --plotgrid: #e3e9eb;
+  --c1: #1f6fb2; --c2: #d9731a; --c3: #2a9d5c; --c4: #c0392b; --c5: #7d5ba6; --c6: #8c6239; --c7: #c2497f; --c8: #5f6b73;
+  --f-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --f-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --f-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #12191d; --grid: rgba(140, 190, 215, 0.05); --card: #1a2328; --ink: #e3ebee; --muted: #93a4ad;
+    --line: #2c3a41; --accent: #7fb8dc; --accent-soft: rgba(127, 184, 220, 0.16); --eig: #f0a35e;
+    --good: #6fcf9b; --good-soft: #173527; --bad: #f0907f; --bad-soft: #3d201c; --plotgrid: #243037; color-scheme: dark;
+    --c1: #79b6e8; --c2: #f2a65a; --c3: #6fcf9b; --c4: #f0907f; --c5: #b9a0e0; --c6: #d2a679; --c7: #ec8fbd; --c8: #a9b6bd;
+  }
+}
+:root[data-theme="dark"] {
+    --c1: #79b6e8; --c2: #f2a65a; --c3: #6fcf9b; --c4: #f0907f; --c5: #b9a0e0; --c6: #d2a679; --c7: #ec8fbd; --c8: #a9b6bd;
+
+  --paper: #12191d; --grid: rgba(140, 190, 215, 0.05); --card: #1a2328; --ink: #e3ebee; --muted: #93a4ad;
+  --line: #2c3a41; --accent: #7fb8dc; --accent-soft: rgba(127, 184, 220, 0.16); --eig: #f0a35e;
+  --good: #6fcf9b; --good-soft: #173527; --bad: #f0907f; --bad-soft: #3d201c; --plotgrid: #243037; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  background-color: var(--paper);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+}
+.wrap {
+  max-width: 1180px; margin: 0 auto; padding-block: 32px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 20px;
+}
+header.page { display: grid; gap: 8px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--f-display); font-weight: 600; font-size: clamp(28px, 5vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+.lede { margin: 0; color: var(--muted); max-width: 70ch; }
+button {
+  font: inherit; font-size: 14px; cursor: pointer; border-radius: 7px; border: 1px solid var(--line);
+  background: transparent; color: var(--ink); padding: 6px 12px;
+}
+button:hover { border-color: var(--accent); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; min-width: 0; }
+.explain { display: grid; gap: 10px; }
+.explain h2 { font-family: var(--f-display); font-weight: 600; font-size: 20px; margin: 0; }
+.explain p { margin: 0; max-width: 72ch; }
+.tablewrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 7px 6px; border-top: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; border-top: 0; }
+footer { color: var(--muted); font-size: 13px; }
+.main { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 880px) { .main { grid-template-columns: minmax(0, 1fr); } }
+.plots, .side { display: grid; gap: 16px; min-width: 0; }
+.plotcard { display: grid; gap: 6px; }
+.plottitle { font-family: var(--f-display); font-weight: 600; font-size: 18px; margin: 0 0 6px; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.hint { font-family: var(--f-body); font-weight: 400; font-size: 13px; color: var(--muted); }
+.card h2 { font-family: var(--f-display); font-weight: 600; font-size: 18px; margin: 0 0 10px; }
+svg { width: 100%; height: auto; display: block; touch-action: none; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { display: inline-block; width: 18px; height: 0; border-top: 2.5px solid; }
+.legend i.dash { border-top-style: dashed; }
+td, th { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+table.small td, table.small th { padding: 3px 8px; }
+.note { font-size: 13px; color: var(--muted); margin: 8px 0 0; max-width: 72ch; }
+.verdict { margin: 8px 0 0; font-size: 14px; max-width: 76ch; }
+.verdict:empty { display: none; }
+.verdict.no { color: var(--bad); }
+.rangerow { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 6px; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+.rangerow output { font-family: var(--f-mono); color: var(--ink); }
+.rangerow input { flex-basis: 100%; width: 100%; accent-color: var(--accent); }
+.check { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--muted); margin: 8px 0; }
+.check input { accent-color: var(--accent); margin-top: 3px; }
+.modebar { margin: 0 0 16px; }
+.seg { display: inline-flex; }
+.seg button { font-family: var(--f-body); font-size: 14px; padding: 6px 14px; border-radius: 0; }
+.seg button:first-child { border-radius: 7px 0 0 7px; }
+.seg button:last-child { border-radius: 0 7px 7px 0; border-left: 0; }
+.heatwrap { display: flex; align-items: center; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+#heat { width: 180px; height: 180px; image-rendering: pixelated; border: 1px solid var(--line); border-radius: 4px; }
+.heatlegend { display: flex; flex-direction: column; align-items: center; gap: 4px; font-family: var(--f-mono); font-size: 11px; color: var(--muted); }
+.heatlegend .bar { width: 12px; height: 120px; border-radius: 3px; background: linear-gradient(to top, var(--heat0), var(--heat1)); }
+.sq { position: relative; width: 100%; max-width: 460px; aspect-ratio: 1; }
+.sq canvas, .sq svg { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 6px; }
+#sq { image-rendering: auto; }
+.colorbar { display: flex; align-items: center; gap: 8px; font-family: var(--f-mono); font-size: 12px; color: var(--muted); max-width: 460px; }
+.colorbar .bar2 { flex: 1; height: 10px; border-radius: 3px; background: linear-gradient(to right, #2f5f8a, #f4f1ea, #b4532a); }
+.hand { font-family: var(--f-mono); font-size: 12.5px; line-height: 1.55; overflow-x: auto; }
+.hand .lbl { font-family: var(--f-body); font-weight: 600; color: var(--muted); font-size: 12.5px; margin-top: 8px; display: block; }
+.hand table td { padding: 1px 8px 1px 0; text-align: right; }
+
+/* Embed mode (?embed): only the interactive part, for iframes */
+html.embed .wrap { padding-block: 4px 8px; }
+html.embed .standalone-only { display: none !important; }
+html.embed body { background-image: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="page standalone-only">
+    <span class="eyebrow">Introduction to Scientific Computing · Chapter 5 · Exercise Sheet 05, Exercise 1</span>
+    <h1>Kernel Interpolation and Its Width</h1>
+    <p class="lede">The kernel-based model s(x) = Σ αᵢ k(x, xᵢ) puts a Gaussian k(x, xᵢ) = exp(−‖x − xᵢ‖²/σ²) on every data point and solves Aα = y with the Cholesky decomposition (Theorem 5.2, Algorithm 6). Everything depends on the width σ: too small and s collapses between the points, too large and A becomes nearly singular.</p>
+  </header>
+
+  <div class="modebar">
+    <span class="seg" role="group" aria-label="Mode">
+      <button type="button" id="m1" class="on" aria-pressed="true">1D: what σ does</button><button type="button" id="m2" aria-pressed="false">Exercise 1b in 2D</button>
+    </span>
+  </div>
+
+  <div id="mode1">
+    <div class="main">
+      <div class="plots">
+        <section class="card plotcard" aria-label="Kernel interpolant">
+          <h2 class="plottitle">Interpolant s(x) and its terms αᵢ k(x, xᵢ) <span class="hint">drag a point left or right</span></h2>
+          <svg id="plot1" viewBox="0 0 640 300" role="img" aria-label="The kernel interpolant in one dimension"></svg>
+          <div class="legend" id="leg1"></div>
+        </section>
+      </div>
+      <div class="side">
+        <section class="card">
+          <h2>Setup</h2>
+          <label class="rangerow" for="sIn">kernel width σ = <output id="sOut">0.5</output>
+            <input id="sIn" type="range" min="-3" max="1.1" step="0.01" value="-0.69"></label>
+          <label class="rangerow" for="nIn">number of points n = <output id="nOut">8</output>
+            <input id="nIn" type="range" min="2" max="15" step="1" value="8"></label>
+          <label class="check" for="showTerms"><input id="showTerms" type="checkbox" checked> show the terms αᵢ k(x, xᵢ)</label>
+          <p class="note">Data from f(x) = e<sup>−2x²</sup> cos(2πx) on [−π/2, π/2], the x-slice of the function in Exercise 3.</p>
+        </section>
+        <section class="card">
+          <h2>The system Aα = y</h2>
+          <div class="tablewrap"><table class="small"><tbody id="stat1"></tbody></table></div>
+          <div class="heatwrap"><canvas id="heat" width="240" height="240" aria-label="The kernel matrix A as a heat map"></canvas><div class="heatlegend"><span>1</span><span class="bar"></span><span>0</span></div></div>
+          <p class="verdict" id="verd1"></p>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <div id="mode2" hidden>
+    <div class="main">
+      <div class="plots">
+        <section class="card plotcard" aria-label="Interpolant on the unit square">
+          <h2 class="plottitle">The interpolant s(x) on the unit square <span class="hint">drag the evaluation point ✚</span></h2>
+          <div class="sq"><canvas id="sq" width="420" height="420" aria-label="Heat map of the kernel interpolant"></canvas><svg id="sqo" viewBox="0 0 420 420"></svg></div>
+          <div class="colorbar"><span id="cbLo"></span><span class="bar2"></span><span id="cbHi"></span></div>
+        </section>
+      </div>
+      <div class="side">
+        <section class="card">
+          <h2>Kernel width</h2>
+          <label class="rangerow" for="s2In">σ = <output id="s2Out">1</output>
+            <input id="s2In" type="range" min="-2.3" max="2.31" step="0.01" value="0"></label>
+          <button type="button" id="s2Reset">σ = 1 as on the sheet</button>
+        </section>
+        <section class="card">
+          <h2>By hand, to 4 decimals</h2>
+          <div id="hand" class="hand"></div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <section class="card explain standalone-only">
+    <h2>What to try</h2>
+    <p><b>Small σ.</b> Each Gaussian is a narrow spike. A is almost the identity, α ≈ y, and s drops to 0 between the points: it interpolates, but it does not approximate.</p>
+    <p><b>Large σ.</b> All Gaussians look alike on the scale of the data, the entries of A all approach 1, and A becomes nearly singular. cond(A) explodes, the coefficients αᵢ become huge with alternating signs, and the terms cancel. With many points the interpolant starts to overshoot, like a polynomial of high degree. This is what happens in Exercise 3c with σ = 1.</p>
+    <p><b>In between</b> σ should be comparable to the distance between neighbouring points and to the scale on which f changes.</p>
+    <p><b>Exercise 1b.</b> The second tab reproduces the hand computation: A, its Cholesky factor L, the forward substitution Lz = y, the backward substitution Lᵀα = z, and s at the evaluation point (½, ½). Change σ and watch the same effects in 2D.</p>
+  </section>
+
+  <footer class="standalone-only">Companion to Exercise Sheet 05, Exercise 1 (and 3c), and §5.2 of the lecture notes (Definition 5.3, Theorem 5.2, Algorithm 6).</footer>
+</div>
+<script>
+(function () {
+  const NS = "http://www.w3.org/2000/svg";
+  const MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+  const SUP = "⁰¹²³⁴⁵⁶⁷⁸⁹", SUBS = "₀₁₂₃₄₅₆₇₈₉";
+  const sub = n => String(n).split("").map(d => SUBS[+d]).join("");
+  const $ = id => document.getElementById(id);
+  const css = k => getComputedStyle(document.documentElement).getPropertyValue(k).trim();
+  function el(tag, attrs, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; }
+  const sci = v => { if (v === 0) return "0"; const e = Math.floor(Math.log10(Math.abs(v))); if (e >= -2 && e < 4) return (+v.toPrecision(4)).toString().replace("-", "−"); return (v / 10 ** e).toFixed(1).replace("-", "−") + "·10" + (e < 0 ? "⁻" : "") + String(Math.abs(e)).split("").map(d => SUP[+d]).join(""); };
+  const f4 = v => (Math.abs(v) < 5e-5 ? "0.0000" : v.toFixed(4)).replace("-", "−");
+
+  // ---------- linear algebra ----------
+  function cholesky(A) {                     // returns L or null if not positive definite
+    const n = A.length, L = A.map(() => new Array(n).fill(0));
+    for (let k = 0; k < n; k++) {
+      let d = A[k][k]; for (let m = 0; m < k; m++) d -= L[k][m] * L[k][m];
+      if (!(d > 0)) return null;
+      L[k][k] = Math.sqrt(d);
+      for (let j = k + 1; j < n; j++) { let s = A[j][k]; for (let m = 0; m < k; m++) s -= L[j][m] * L[k][m]; L[j][k] = s / L[k][k]; }
+    }
+    return L;
+  }
+  const fwd = (L, b) => { const z = []; for (let k = 0; k < b.length; k++) { let s = b[k]; for (let j = 0; j < k; j++) s -= L[k][j] * z[j]; z.push(s / L[k][k]); } return z; };
+  const bwd = (L, z) => { const n = z.length, x = new Array(n); for (let k = n - 1; k >= 0; k--) { let s = z[k]; for (let j = k + 1; j < n; j++) s -= L[j][k] * x[j]; x[k] = s / L[k][k]; } return x; };
+  function gaussSolve(A, b) {               // fallback with partial pivoting
+    const n = b.length, M = A.map((r, i) => r.concat([b[i]]));
+    for (let k = 0; k < n; k++) {
+      let p = k; for (let i = k + 1; i < n; i++) if (Math.abs(M[i][k]) > Math.abs(M[p][k])) p = i;
+      [M[k], M[p]] = [M[p], M[k]];
+      for (let i = k + 1; i < n; i++) { const l = M[i][k] / M[k][k]; for (let j = k; j <= n; j++) M[i][j] -= l * M[k][j]; }
+    }
+    const x = new Array(n); for (let k = n - 1; k >= 0; k--) { let s = M[k][n]; for (let j = k + 1; j < n; j++) s -= M[k][j] * x[j]; x[k] = s / M[k][k]; } return x;
+  }
+  function eigSym(A) {                       // Jacobi eigenvalues
+    const n = A.length, a = A.map(r => r.slice());
+    for (let sweep = 0; sweep < 80; sweep++) {
+      let off = 0; for (let p = 0; p < n; p++) for (let q = p + 1; q < n; q++) off += a[p][q] * a[p][q];
+      if (off < 1e-40) break;
+      for (let p = 0; p < n; p++) for (let q = p + 1; q < n; q++) {
+        if (Math.abs(a[p][q]) < 1e-300) continue;
+        const th = (a[q][q] - a[p][p]) / (2 * a[p][q]);
+        const t = Math.sign(th || 1) / (Math.abs(th) + Math.sqrt(th * th + 1)), c = 1 / Math.sqrt(t * t + 1), s = t * c;
+        for (let k = 0; k < n; k++) { const x = a[k][p], y = a[k][q]; a[k][p] = c * x - s * y; a[k][q] = s * x + c * y; }
+        for (let k = 0; k < n; k++) { const x = a[p][k], y = a[q][k]; a[p][k] = c * x - s * y; a[q][k] = s * x + c * y; }
+      }
+    }
+    return a.map((r, i) => r[i]);
+  }
+
+  // ---------- mode 1: 1D ----------
+  const X0 = -Math.PI / 2, X1 = Math.PI / 2;
+  const f1 = x => Math.exp(-2 * x * x) * Math.cos(2 * Math.PI * x);
+  const vdc = i => { let r = 0, d = 0.5; while (i > 0) { if (i & 1) r += d; i >>= 1; d /= 2; } return r; };   // van der Corput
+  const st = { n: 8, sigma: 0.5, xs: [], drag: null };
+  const initPts = n => Array.from({ length: n }, (_, i) => X0 + (X1 - X0) * (0.04 + 0.92 * vdc(i + 1)));
+  st.xs = initPts(8);
+
+  function render1() {
+    const xs = st.xs, n = xs.length, s = st.sigma, y = xs.map(f1);
+    const k = (a, b) => Math.exp(-((a - b) ** 2) / (s * s));
+    const A = xs.map(a => xs.map(b => k(a, b)));
+    const L = cholesky(A);
+    const alpha = L ? bwd(L, fwd(L, y)) : gaussSolve(A, y);
+    const sx = x => alpha.reduce((t, ai, i) => t + ai * k(x, xs[i]), 0);
+    const ev = eigSym(A).map(Math.abs), cond = Math.max(...ev) / Math.max(Math.min(...ev), 1e-300);
+    const ink = css("--ink"), muted = css("--muted"), grid = css("--plotgrid"), card = css("--card");
+    const C = [1, 2, 3, 4, 5, 6, 7, 8].map(i => css("--c" + i));
+
+    const svg = $("plot1"); svg.innerHTML = "";
+    const W = 640, H = 300, ML = 44, MR = 12, MT = 12, MB = 26, lo = -2, hi = 2;
+    const X = v => ML + (v - X0) / (X1 - X0) * (W - ML - MR), Y = v => MT + (hi - Math.max(lo - 1, Math.min(hi + 1, v))) / (hi - lo) * (H - MT - MB);
+    for (let v = lo; v <= hi; v += 1) {
+      el("line", { x1: ML, x2: W - MR, y1: Y(v), y2: Y(v), stroke: grid, "stroke-width": v === 0 ? 1.6 : 1 }, svg);
+      el("text", { x: ML - 6, y: Y(v) + 4, "text-anchor": "end", fill: muted, "font-size": 11, "font-family": MONO }, svg).textContent = String(v).replace("-", "−");
+    }
+    [-1.5, -1, -0.5, 0, 0.5, 1, 1.5].forEach(v => el("text", { x: X(v), y: H - 6, "text-anchor": "middle", fill: muted, "font-size": 11, "font-family": MONO }, svg).textContent = String(v).replace("-", "−"));
+    const cp = el("clipPath", { id: "c1" }, el("defs", {}, svg)); el("rect", { x: ML, y: MT, width: W - ML - MR, height: H - MT - MB }, cp);
+    const g = el("g", { "clip-path": "url(#c1)" }, svg);
+    const S = 500, grid1 = Array.from({ length: S + 1 }, (_, i) => X0 + (X1 - X0) * i / S);
+    const path = fn => grid1.map((x, i) => (i ? "L" : "M") + X(x).toFixed(1) + "," + Y(fn(x)).toFixed(1)).join("");
+    if ($("showTerms").checked) xs.forEach((xi, i) => el("path", { d: path(x => alpha[i] * k(x, xi)), fill: "none", stroke: C[i % 8], "stroke-width": 1.2, opacity: 0.8 }, g));
+    el("path", { d: path(f1), fill: "none", stroke: muted, "stroke-width": 2, "stroke-dasharray": "6 4" }, g);
+    el("path", { d: path(sx), fill: "none", stroke: ink, "stroke-width": 2.6 }, g);
+    xs.forEach((xi, i) => {
+      const c = el("circle", { cx: X(xi), cy: Y(y[i]), r: 6.5, fill: card, stroke: ink, "stroke-width": 2, style: "cursor:ew-resize" }, svg);
+      c.addEventListener("pointerdown", e => { e.preventDefault(); st.drag = i; svg.setPointerCapture && svg.setPointerCapture(e.pointerId); });
+    });
+    $("leg1").innerHTML = `<span><i class="dash" style="border-top-color:${muted}"></i>f</span><span><i style="border-top-color:${ink}"></i>s = Σ αᵢ k(·, xᵢ)</span>` + ($("showTerms").checked ? `<span>thin lines: the terms αᵢ k(·, xᵢ)</span>` : "");
+
+    let err = 0, maxS = 0; grid1.forEach(x => { const v = sx(x); err = Math.max(err, Math.abs(v - f1(x))); maxS = Math.max(maxS, Math.abs(v)); });
+    let minGap = Infinity; const srt = xs.slice().sort((a, b) => a - b); for (let i = 1; i < n; i++) minGap = Math.min(minGap, srt[i] - srt[i - 1]);
+    $("stat1").innerHTML = `<tr><td>cond₂(A)</td><td>${sci(cond)}</td></tr><tr><td>λ_min(A)</td><td>${sci(Math.min(...ev))}</td></tr><tr><td>max |αᵢ|</td><td>${sci(Math.max(...alpha.map(Math.abs)))}</td></tr><tr><td>Cholesky</td><td>${L ? "works" : "fails"}</td></tr><tr><td>max |s − f|</td><td>${sci(err)}</td></tr><tr><td>min. point distance</td><td>${minGap.toFixed(3)}</td></tr>`;
+    let v = "";
+    const wide = cond > 1e6 || err > 1, narrow = s < 0.6 * minGap;
+    if (wide) v = `σ is large compared with the point distances: A is nearly singular (cond ≈ ${sci(cond)}) and the αᵢ are large (up to ${sci(Math.max(...alpha.map(Math.abs)))}) with opposite signs, so the terms cancel.` + (err > 1 ? ` The interpolant overshoots between the points: max |s − f| ≈ ${sci(err)}.` : "") +
+      (cond > 1e13 ? " With cond(A) this large, double precision (eps ≈ 2·10⁻¹⁶) no longer determines α: the jagged curve is rounding noise (Chapter 2)." : "") +
+      (!L ? " Cholesky fails: A is no longer numerically positive definite; this page falls back to elimination with pivoting." : "");
+    else if (narrow) v = "σ is small compared with the point distances: A ≈ I, α ≈ y, and s collapses to 0 between the points.";
+    $("verd1").textContent = v; $("verd1").className = "verdict" + (wide || narrow ? " no" : "");
+
+    // heat map of A
+    const cv = $("heat"), ctx = cv.getContext("2d"), cell = cv.width / n;
+    const c0 = css("--heat0") || "#f4f1ea", c1 = css("--heat1") || "#1f5f86";
+    const mix = t => { const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)); const a = p(c0), b = p(c1); return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(",")})`; };
+    const order = xs.map((x, i) => i).sort((p, q) => xs[p] - xs[q]);
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    order.forEach((i, r) => order.forEach((j, c) => { ctx.fillStyle = mix(A[i][j]); ctx.fillRect(c * cell, r * cell, Math.ceil(cell), Math.ceil(cell)); }));
+    window.__k1 = { n, sigma: s, cond, maxAlpha: Math.max(...alpha.map(Math.abs)), err, chol: !!L };
+  }
+
+  // ---------- mode 2: Exercise 1b ----------
+  const P = [[0.1, 0.2], [0.7, 0.8], [0.4, 0.5]], Y2 = [0.9, 0.6, 0.8];
+  const st2 = { sigma: 1, xe: [0.5, 0.5], drag: false };
+  function render2() {
+    const s = st2.sigma, k = (a, b) => Math.exp(-((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2) / (s * s));
+    const A = P.map(a => P.map(b => k(a, b))), L = cholesky(A);
+    const z = L ? fwd(L, Y2) : null, alpha = L ? bwd(L, z) : gaussSolve(A, Y2);
+    const sx = x => alpha.reduce((t, ai, i) => t + ai * k(x, P[i]), 0);
+    const cv = $("sq"), ctx = cv.getContext("2d"), R = 140, img = ctx.createImageData(R, R);
+    let lo = Infinity, hi = -Infinity; const vals = new Float64Array(R * R);
+    for (let j = 0; j < R; j++) for (let i = 0; i < R; i++) { const v = sx([(i + 0.5) / R, 1 - (j + 0.5) / R]); vals[j * R + i] = v; lo = Math.min(lo, v); hi = Math.max(hi, v); }
+    const cA = [47, 95, 138], cM = [244, 241, 234], cB = [180, 83, 42];
+    for (let p = 0; p < R * R; p++) {
+      const t = (vals[p] - lo) / (hi - lo || 1); const [a, b, u] = t < 0.5 ? [cA, cM, t * 2] : [cM, cB, (t - 0.5) * 2];
+      img.data.set([0, 1, 2].map(c => Math.round(a[c] + (b[c] - a[c]) * u)).concat([255]), 4 * p);
+    }
+    const tmp = document.createElement("canvas"); tmp.width = R; tmp.height = R; tmp.getContext("2d").putImageData(img, 0, 0);
+    ctx.imageSmoothingEnabled = true; ctx.clearRect(0, 0, cv.width, cv.height); ctx.drawImage(tmp, 0, 0, cv.width, cv.height);
+    $("cbLo").textContent = lo.toFixed(3).replace("-", "−"); $("cbHi").textContent = hi.toFixed(3).replace("-", "−");
+    const o = $("sqo"); o.innerHTML = ""; const S = 420, Xp = v => v * S, Yp = v => (1 - v) * S;
+    for (let t = 0.1; t < 1; t += 0.1) { el("line", { x1: Xp(t), x2: Xp(t), y1: 0, y2: S, stroke: "#000", opacity: 0.06 }, o); el("line", { y1: Yp(t), y2: Yp(t), x1: 0, x2: S, stroke: "#000", opacity: 0.06 }, o); }
+    P.forEach((p, i) => {
+      el("circle", { cx: Xp(p[0]), cy: Yp(p[1]), r: 8, fill: "#fff", stroke: "#222", "stroke-width": 2 }, o);
+      el("text", { x: Xp(p[0]) - 10, y: Yp(p[1]) - 14, "text-anchor": "start", "font-size": 15, "font-family": MONO, fill: "#111", stroke: "#fff", "stroke-width": 3, "paint-order": "stroke" }, o).textContent = `x${sub(i + 1)}: y = ${Y2[i]}`;
+    });
+    const ex = Xp(st2.xe[0]), ey = Yp(st2.xe[1]);
+    const cross = el("g", { style: "cursor:move" }, o);
+    el("circle", { cx: ex, cy: ey, r: 16, fill: "transparent" }, cross);
+    el("path", { d: `M${ex - 11},${ey}H${ex + 11}M${ex},${ey - 11}V${ey + 11}`, stroke: "#111", "stroke-width": 3 }, cross);
+    el("path", { d: `M${ex - 11},${ey}H${ex + 11}M${ex},${ey - 11}V${ey + 11}`, stroke: "#fff", "stroke-width": 1.2 }, cross);
+    cross.addEventListener("pointerdown", e => { e.preventDefault(); st2.drag = true; o.setPointerCapture && o.setPointerCapture(e.pointerId); });
+
+    const kx = P.map(p => k(st2.xe, p)), sv = sx(st2.xe);
+    const mat = (M, name) => `<span class="lbl">${name}</span><table>${M.map(r => `<tr>${r.map(v => `<td>${f4(v)}</td>`).join("")}</tr>`).join("")}</table>`;
+    const ev = eigSym(A).map(Math.abs), cond = Math.max(...ev) / Math.min(...ev);
+    $("hand").innerHTML = mat(A, `A (σ = ${+s.toFixed(3)}), cond₂(A) = ${sci(cond)}`) +
+      (L ? mat(L, "Cholesky factor L") + `<span class="lbl">forward substitution Lz = y</span>z = (${z.map(f4).join(", ")})` : `<span class="lbl">Cholesky fails numerically</span>`) +
+      `<span class="lbl">backward substitution Lᵀα = z</span>α = (${alpha.map(f4).join(", ")})` +
+      `<span class="lbl">at x = (${st2.xe.map(v => v.toFixed(2)).join(", ")})</span>k(x, xᵢ) = (${kx.map(f4).join(", ")})<br>s(x) = ${alpha.map((a, i) => `${f4(a)}·${f4(kx[i])}`).join(" + ").replace(/\+ −/g, "− ")} = <b>${f4(sv)}</b>`;
+    $("s2Out").textContent = +s.toFixed(3);
+    window.__k2 = { sigma: s, alpha, s: sv, cond, L: !!L };
+  }
+
+  // ---------- events ----------
+  const svg1 = $("plot1");
+  svg1.addEventListener("pointermove", e => {
+    if (st.drag === null) return;
+    const pt = svg1.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const p = pt.matrixTransform(svg1.getScreenCTM().inverse());
+    let x = X0 + (p.x - 44) / (640 - 56) * (X1 - X0); x = Math.max(X0, Math.min(X1, x));
+    if (st.xs.some((v, j) => j !== st.drag && Math.abs(v - x) < 0.01)) return;
+    st.xs[st.drag] = x; render1();
+  });
+  svg1.addEventListener("pointerup", () => { st.drag = null; });
+  $("sIn").addEventListener("input", e => { st.sigma = Math.exp(+e.target.value); $("sOut").textContent = +st.sigma.toPrecision(3); render1(); });
+  $("nIn").addEventListener("input", e => { st.n = +e.target.value; $("nOut").textContent = st.n; st.xs = initPts(st.n); render1(); });
+  $("showTerms").addEventListener("change", render1);
+  const o = $("sqo");
+  o.addEventListener("pointermove", e => {
+    if (!st2.drag) return;
+    const pt = o.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const p = pt.matrixTransform(o.getScreenCTM().inverse());
+    st2.xe = [Math.max(0, Math.min(1, p.x / 420)), Math.max(0, Math.min(1, 1 - p.y / 420))]; render2();
+  });
+  o.addEventListener("pointerup", () => { st2.drag = false; });
+  $("s2In").addEventListener("input", e => { st2.sigma = Math.exp(+e.target.value); render2(); });
+  $("s2Reset").addEventListener("click", () => { st2.sigma = 1; st2.xe = [0.5, 0.5]; $("s2In").value = 0; render2(); });
+  [["m1", "mode1"], ["m2", "mode2"]].forEach(([b, m]) => $(b).addEventListener("click", () => {
+    ["m1", "m2"].forEach(x => { const on = x === b; $(x).classList.toggle("on", on); $(x).setAttribute("aria-pressed", on); });
+    $("mode1").hidden = m !== "mode1"; $("mode2").hidden = m !== "mode2";
+    (m === "mode1" ? render1 : render2)();
+  }));
+  if (window.matchMedia) { const mq = window.matchMedia("(prefers-color-scheme: dark)"); mq.addEventListener && mq.addEventListener("change", () => { render1(); render2(); }); }
+  st.sigma = Math.exp(-0.69); $("sOut").textContent = +st.sigma.toPrecision(3);
+  render1(); render2();
+})();
+</script>
+
+<script>
+/* Reports the page height to the embedding page, so an iframe can size itself.
+   Message: { type: "isc-demo-height", id: <the ?id= value>, height: <pixels> } */
+(function () {
+  if (window.parent === window) return;
+  const id = new URLSearchParams(location.search).get("id") || location.pathname;
+  const send = () => {
+    try { window.parent.postMessage({ type: "isc-demo-height", id, height: document.documentElement.scrollHeight }, "*"); } catch (e) {}
+  };
+  if ("ResizeObserver" in window) new ResizeObserver(send).observe(document.body);
+  window.addEventListener("load", send);
+  send();
+})();
+</script>
+</body>
+</html>
